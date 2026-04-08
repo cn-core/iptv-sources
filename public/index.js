@@ -162,7 +162,12 @@ class PathParser {
   }
 }
 
-(function() {
+(function () {
+  function replaceDomain(domain) {
+    document.querySelectorAll('code').forEach(code => {
+      code.textContent = code.textContent.replace('{site_url}', 'https://' + domain);
+    });
+  }
   /**
    * 
    * @param {*} urlOjb 
@@ -185,19 +190,15 @@ class PathParser {
       .then(response => response.text())  // 获取响应并将其转化为文本
       .then(data => {
         document.getElementById('content').innerHTML = marked.parse(data);  // 使用 marked.js 解析 markdown 内容
+        replaceDomain(window.location.hostname);
       })
       .catch(error => {
         console.error('Error loading the markdown file:', error);
       });
     return true;
   }
-  function replaceDomain(domain) {
-    document.querySelectorAll('code').forEach(code => {
-      code.textContent = code.textContent.replace('{site_url}', 'https://' + domain);
-    });
-  }
+
   const urlOjb = PathParser.parse();
-  replaceDomain(window.location.hostname);
   loadMarkdown(urlOjb);   
 
   document.addEventListener('click', (event) => {
