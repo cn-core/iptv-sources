@@ -42,9 +42,9 @@ const gen_tvbox_json = async (srcs: ITvBoxLiveSrc[]): Promise<TVBoxConfig> => {
     channels: [
       {
         name,
-        url: `${get_custom_url()}/txt/${f_name}.txt`,
+        urls: [`${get_custom_url()}/txt/${f_name}.txt`],
         epg: `https://iptv-sources2.pages.dev/epg/pw-7/{date}/${f_name}.json`,
-        logo: `https://tv-res.pages.dev/logo/${f_name}.png`,
+        // logo: `https://tv-res.pages.dev/logo/${f_name}.png`,
       },
     ],
   }));
