@@ -50,6 +50,18 @@ jobs:
       - run: pnpm m3u
       - run: sudo apt-get install -y tree
 
+      # 删除超过 25MB 的文件
+      - name: Remove files larger than 25MB
+        run: |
+          echo "===== Large files before delete ====="
+          find m3u -type f -size +25M -exec ls -lh {} \;
+          
+          echo "===== Deleting ====="
+          find m3u -type f -size +25M -delete
+          
+          echo "===== Verify ====="
+          find m3u -type f -size +25M -exec ls -lh {} \; || true
+
       - name: Publish m3u (Cloudflare direct upload or empty commit)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
