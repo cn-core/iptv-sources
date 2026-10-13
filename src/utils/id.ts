@@ -1,4 +1,4 @@
-import { converter } from '../sources/utils';
+import { converter } from './converter';
 
 export const get_channel_id = (extinf: string) => {
   const regExp = /#EXTINF:-1([^,]*),(.*)/;

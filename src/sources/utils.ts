@@ -1,9 +1,8 @@
 import 'dotenv/config';
 
-import * as OpenCC from 'opencc-js';
 import type { IChannel, IPlaylist } from '../playlist';
 import { mapPlaylistText, parseM3u } from '../playlist';
-import { get_github_raw_proxy_url, replace_github_raw_proxy_url } from '../utils';
+import { converter, get_github_raw_proxy_url, replace_github_raw_proxy_url } from '../utils';
 
 /** 需要拉取的远程文件 */
 export interface IRemoteSource {
@@ -50,8 +49,6 @@ export const buildSourceOutputs = (source: ISource, raw: string): ISourceOutput[
     ? source.transform(playlist, source.f_name)
     : [{ filename: source.f_name, playlist }];
 };
-
-export const converter = OpenCC.Converter({ from: 'hk', to: 'cn' });
 
 /** 繁体转简体 */
 export const toSimplified = (playlist: IPlaylist) => mapPlaylistText(playlist, converter);

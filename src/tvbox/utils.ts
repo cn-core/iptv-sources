@@ -2,6 +2,7 @@ import { promises as fsPromises } from 'fs';
 import path from 'path';
 
 import { parseTvboxJson, type TVBoxConfig } from '@whyun/tv-tools';
+import { projectRoot } from '../file';
 import { get_custom_url } from '../utils';
 const TVBOX_JSON_URL = 'http://tvbox.xn--4kq62z5rby2qupq9ub.top/';
 async function fetchBodyTextWithOkhttp(url: string): Promise<{
@@ -58,7 +59,7 @@ const gen_tvbox_json = async (srcs: ITvBoxLiveSrc[]): Promise<TVBoxConfig> => {
 };
 
 export const writeTvBoxJson = async (f_name: string, srcs: ITvBoxLiveSrc[]): Promise<void> => {
-  const tvbox_p = path.resolve('m3u', 'tvbox');
+  const tvbox_p = path.join(projectRoot, 'm3u', 'tvbox');
 
   await fsPromises.mkdir(tvbox_p, { recursive: true });
   await fsPromises.writeFile(

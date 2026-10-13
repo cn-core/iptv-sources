@@ -135,7 +135,7 @@ export const writeTxt = async (f_name: string, playlist: IPlaylist) => {
 };
 
 export const mergeTxts = () => {
-  const txts_p = path.resolve('m3u', 'txt');
+  const txts_p = path.join(projectRoot, 'm3u', 'txt');
 
   const files = listFilesRecursive(txts_p, [CHINA_IPTV_DIR]).filter(
     (f) => path.extname(f) === '.txt'
@@ -147,7 +147,7 @@ export const mergeTxts = () => {
 };
 
 export const mergeSources = () => {
-  const sources_p = path.resolve('m3u', 'sources');
+  const sources_p = path.join(projectRoot, 'm3u', 'sources');
   type Source = Record<string, string[]>; // 频道/分类名 -> URL 数组
   const files = listFilesRecursive(sources_p, [CHINA_IPTV_DIR]).filter(
     (f) => path.extname(f) === '.json'
