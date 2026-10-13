@@ -1,5 +1,5 @@
 import { getChannelName, type IChannel, isStreamUrl } from '../playlist';
-import { get_from_info } from '../utils';
+import { getFromInfo } from '../utils';
 
 /** 单个播放列表的频道列表页（LIST.temp.md） */
 export const renderChannelList = (
@@ -12,7 +12,7 @@ export const renderChannelList = (
     .filter(({ url }) => isStreamUrl(url))
     .map(({ extinf, url }, idx) => {
       const channelName = getChannelName(extinf).replace(/\|/g, '').trim();
-      return `| ${idx + 1} | ${channelName} | ${get_from_info(url)} | <${url}> |`;
+      return `| ${idx + 1} | ${channelName} | ${getFromInfo(url)} | <${url}> |`;
     });
 
   return template

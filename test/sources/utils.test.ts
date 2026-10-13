@@ -6,8 +6,8 @@ import { buildSourceOutputs, cleanChannelMarks, type ISource } from '../../src/s
 const m3u = ['#EXTM3U', '#EXTINF:-1,Channel A', 'https://a.com'].join('\n');
 
 describe('buildSourceOutputs', () => {
-  it('parses m3u and emits one output named f_name by default', () => {
-    const source: ISource = { name: 'test', f_name: 'test_m3u', url: '' };
+  it('parses m3u and emits one output named filename by default', () => {
+    const source: ISource = { name: 'test', filename: 'test_m3u', url: '' };
 
     expect(buildSourceOutputs(source, m3u)).toEqual([
       {
@@ -23,7 +23,7 @@ describe('buildSourceOutputs', () => {
   it('uses the source parser and transform', () => {
     const source: ISource = {
       name: 'test',
-      f_name: 'test_txt',
+      filename: 'test_txt',
       url: '',
       parse: parseTxt,
       transform: (playlist, filename) => [

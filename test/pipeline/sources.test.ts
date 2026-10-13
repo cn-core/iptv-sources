@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { collectSourceUrls } from '../../src/pipeline/sources';
 import type { ISource, ISourceOutput } from '../../src/sources';
 
-const source: ISource = { name: 'test', f_name: 'test', url: '' };
+const source: ISource = { name: 'test', filename: 'test', url: '' };
 
 const output = (filename: string, urls: string[]): ISourceOutput => ({
   filename,

@@ -1,6 +1,6 @@
 import { converter } from './converter';
 
-export const get_channel_id = (extinf: string) => {
+export const getChannelId = (extinf: string) => {
   const regExp = /#EXTINF:-1([^,]*),(.*)/;
   const name = converter(regExp.exec(extinf)![2]).toLowerCase();
 

@@ -2,10 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { parseM3u, serializeM3u } from '../../src/playlist';
 import { LAN_IP_PREFIXES } from '../../src/sources/lan_proxy';
-import {
-  qwerttvv_bj_iptv_sources,
-  qwerttvv_bj_iptv_transform,
-} from '../../src/sources/qwerttvv_bj_iptv';
+import { qwerttvvBjIptvSources, qwerttvvBjIptvTransform } from '../../src/sources/qwerttvv_bj_iptv';
 import { buildSourceOutputs } from '../../src/sources/utils';
 
 const raw = [
@@ -16,9 +13,9 @@ const raw = [
   'rtp://239.3.1.159:8000',
 ].join('\n');
 
-describe('qwerttvv_bj_iptv_transform', () => {
+describe('qwerttvvBjIptvTransform', () => {
   it('creates one result for every supported LAN IP prefix', () => {
-    const results = qwerttvv_bj_iptv_transform!(parseM3u(raw), 'q_bj_iptv');
+    const results = qwerttvvBjIptvTransform!(parseM3u(raw), 'q_bj_iptv');
 
     expect(LAN_IP_PREFIXES).toHaveLength(13);
     expect(results).toHaveLength(13);
@@ -31,7 +28,7 @@ describe('qwerttvv_bj_iptv_transform', () => {
   });
 
   it('rewrites HTTP and RTP channel URLs to each LAN gateway', () => {
-    const results = qwerttvv_bj_iptv_transform!(parseM3u(raw), 'q_bj_iptv');
+    const results = qwerttvvBjIptvTransform!(parseM3u(raw), 'q_bj_iptv');
     const result = results.find(({ filename }) => filename === 'bj_iptv/q_bj_iptv_192_168_6');
     const m3u = serializeM3u(result!.playlist);
 
@@ -45,14 +42,14 @@ describe('qwerttvv_bj_iptv_transform', () => {
 describe('qwerttvv_bj_iptv multicast sources', () => {
   it.each(['q_bj_iptv_unicom_m', 'q_bj_iptv_mobile_m'])(
     'preserves channel URLs and emits one playlist for %s',
-    (filename) => {
-      const source = qwerttvv_bj_iptv_sources.find(({ f_name }) => f_name === filename);
+    (expected) => {
+      const source = qwerttvvBjIptvSources.find(({ filename }) => filename === expected);
       expect(source).toBeDefined();
 
       const outputs = buildSourceOutputs(source!, raw);
 
       expect(outputs).toHaveLength(1);
-      expect(outputs[0].filename).toBe(filename);
+      expect(outputs[0].filename).toBe(expected);
       expect(serializeM3u(outputs[0].playlist)).toBe(raw);
     }
   );
@@ -70,7 +67,7 @@ describe('qwerttvv_bj_iptv proxy environment variables', () => {
     vi.resetModules();
     const mod = await import('../../src/sources/qwerttvv_bj_iptv');
 
-    const results = mod.qwerttvv_bj_iptv_transform!(parseM3u(raw), 'q_bj_iptv');
+    const results = mod.qwerttvvBjIptvTransform!(parseM3u(raw), 'q_bj_iptv');
 
     expect(results.map(({ filename }) => filename)).toEqual([
       'bj_iptv/q_bj_iptv_172_16_0',

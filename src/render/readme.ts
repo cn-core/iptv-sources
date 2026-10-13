@@ -31,7 +31,7 @@ export const renderEpgRows = (epgs: TEPGSource[], epgResults: boolean[]) =>
   `${epgs
     .map(
       (e, idx) =>
-        `| ${e.name} | [${e.f_name}.xml](/epg/${e.f_name}.xml) | ${
+        `| ${e.name} | [${e.filename}.xml](/epg/${e.filename}.xml) | ${
           epgResults[idx] ? '✅' : 'update failed'
         } |`
     )

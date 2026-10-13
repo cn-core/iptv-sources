@@ -9,7 +9,7 @@ import {
 } from '../src/render';
 
 const result = (name: string, outputs: ISourceOutputSummary[]): ISourceBuildResult => ({
-  source: { name, f_name: outputs[0]?.filename ?? '', url: '' },
+  source: { name, filename: outputs[0]?.filename ?? '', url: '' },
   outputs,
 });
 

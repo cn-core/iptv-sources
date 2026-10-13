@@ -1,5 +1,5 @@
 import { updateChannelsJson } from './channels';
-import { epgs_sources } from './epgs';
+import { epgSources } from './epgs';
 import { cleanFiles, mergeSources, mergeTxts, writeEpgJsonByDate } from './file';
 import { buildEpg, buildEpgPw } from './pipeline/epgs';
 import { buildSource, type ISourceBuildResult } from './pipeline/sources';
@@ -15,7 +15,7 @@ const writeTvBoxLiveJson = async (results: ISourceBuildResult[]) => {
     const tvboxSources = results
       .filter(({ source }) => !source.name.startsWith(CHINA_IPTV_SOURCE_PREFIX))
       .flatMap(({ source, outputs }) =>
-        outputs.map(({ filename }) => ({ name: source.name, f_name: filename }))
+        outputs.map(({ filename }) => ({ name: source.name, filename }))
       );
     await writeTvBoxJson('tvbox', tvboxSources);
   } catch (e) {
@@ -28,7 +28,7 @@ cleanFiles();
 (async () => {
   try {
     const sourceResults = await Promise.all(sources.map(buildSource));
-    const epgResults = await Promise.all(epgs_sources.map(buildEpg));
+    const epgResults = await Promise.all(epgSources.map(buildEpg));
     await buildEpgPw();
 
     console.log(`[TASK] Write important files`);
@@ -36,8 +36,8 @@ cleanFiles();
     mergeSources();
     await writeEpgJsonByDate();
     await writeTvBoxLiveJson(sourceResults);
-    updateChannelsJson(sourceResults, epgs_sources);
-    writeReadmePages(sourceResults, epgs_sources, epgResults);
+    updateChannelsJson(sourceResults, epgSources);
+    writeReadmePages(sourceResults, epgSources, epgResults);
 
     console.log(`[TASK] Make custom sources`);
     runCustomTask();

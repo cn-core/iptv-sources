@@ -4,7 +4,7 @@ import fs from 'fs';
 import type { TEPGSource } from './epgs/utils';
 import { projectRoot } from './file';
 import type { ISourceBuildResult } from './pipeline/sources';
-import { get_custom_url } from './utils';
+import { getCustomUrl } from './utils';
 
 export interface IChannel {
   name: string;
@@ -26,7 +26,7 @@ export interface IChannelsResult {
 
 export const updateChannelsJson = (results: ISourceBuildResult[], epgs: TEPGSource[]) => {
   const m3uDir = path.join(projectRoot, 'm3u');
-  const url = get_custom_url();
+  const url = getCustomUrl();
 
   const result: IChannelsResult = {
     builderVersion: 1,
@@ -39,7 +39,7 @@ export const updateChannelsJson = (results: ISourceBuildResult[], epgs: TEPGSour
     ),
     epgs: epgs.map((epg) => ({
       name: epg.name,
-      epg: `${url}/epg/${epg.f_name}.xml`,
+      epg: `${url}/epg/${epg.filename}.xml`,
     })),
     updated_at: new Date().getTime(),
   };

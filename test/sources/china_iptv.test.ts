@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { parseTxt, serializeM3u } from '../../src/playlist';
 import {
-  china_iptv_sources,
-  china_iptv_transform,
+  chinaIptvSources,
+  chinaIptvTransform,
   parseChinaIptvFileName,
 } from '../../src/sources/china_iptv';
 import { LAN_IP_PREFIXES } from '../../src/sources/lan_proxy';
@@ -17,9 +17,9 @@ const raw = [
   '外网,http://example.com/live.m3u8',
 ].join('\n');
 
-const transform = (filename: string) => china_iptv_transform!(parseTxt(raw), filename);
+const transform = (filename: string) => chinaIptvTransform!(parseTxt(raw), filename);
 
-describe('china_iptv_transform', () => {
+describe('chinaIptvTransform', () => {
   it('converts genre txt to m3u and skips empty urls', () => {
     const [result] = transform('iptv/unicast/hebei/unicom');
     const m3u = serializeM3u(result.playlist);
@@ -71,17 +71,19 @@ describe('parseChinaIptvFileName', () => {
   });
 });
 
-describe('china_iptv_sources', () => {
+describe('chinaIptvSources', () => {
   it('lists every upstream file', () => {
-    expect(china_iptv_sources).toHaveLength(189);
-    expect(new Set(china_iptv_sources.map(({ f_name }) => f_name)).size).toBe(189);
-    expect(china_iptv_sources).toContainEqual(
+    expect(chinaIptvSources).toHaveLength(189);
+    expect(new Set(chinaIptvSources.map(({ filename }) => filename)).size).toBe(189);
+    expect(chinaIptvSources).toContainEqual(
       expect.objectContaining({
         name: 'CHINA-IPTV 北京 联通 组播',
-        f_name: 'iptv/multicast/beijing/unicom',
+        filename: 'iptv/multicast/beijing/unicom',
         url: 'https://raw.githubusercontent.com/xisohi/CHINA-IPTV/main/Multicast/beijing/unicom.txt',
       })
     );
-    expect(china_iptv_sources.filter(({ f_name }) => f_name.endsWith('/broadent'))).toHaveLength(3);
+    expect(chinaIptvSources.filter(({ filename }) => filename.endsWith('/broadent'))).toHaveLength(
+      3
+    );
   });
 });

@@ -25,13 +25,13 @@ export const renderIptvRegionPage = (
   results: ISourceBuildResult[],
   { lanIpPrefixes = LAN_IP_PREFIXES, proxyPort = IPTV_PROXY_PORT } = {}
 ) => {
-  // f_name -> 频道数（undefined 表示拉取失败）
+  // filename -> 频道数（undefined 表示拉取失败）
   const counts = new Map<string, number | undefined>();
   results.forEach((result) => {
-    const { f_name } = result.source;
-    if (!isChinaIptvResult(result) || !parseChinaIptvFileName(f_name)) return;
+    const { filename } = result.source;
+    if (!isChinaIptvResult(result) || !parseChinaIptvFileName(filename)) return;
 
-    counts.set(f_name, result.outputs[0]?.channelCount);
+    counts.set(filename, result.outputs[0]?.channelCount);
   });
 
   const renderTable = (type: TChinaIptvType) => {
@@ -46,19 +46,19 @@ export const renderIptvRegionPage = (
     const { icon, label } = CHINA_IPTV_TYPES[type];
     const rows = Object.entries(CHINA_IPTV_PROVINCES).map(([province, provinceName]) => {
       const columns = operators.map((operator) => {
-        const f_name = getChinaIptvFileName({ type, province, operator });
-        if (!counts.has(f_name)) return '🌐暂无';
+        const filename = getChinaIptvFileName({ type, province, operator });
+        if (!counts.has(filename)) return '🌐暂无';
 
-        const count = counts.get(f_name);
+        const count = counts.get(filename);
         if (count === undefined) return '⚠️更新失败';
 
         const links = [
-          `[📺m3u](/${f_name}.m3u)`,
-          `[📄txt](/txt/${f_name}.txt)`,
-          `[📋列表](/list/${f_name}.list)`,
+          `[📺m3u](/${filename}.m3u)`,
+          `[📄txt](/txt/${filename}.txt)`,
+          `[📋列表](/list/${filename}.list)`,
         ];
         if (type === 'multicast') {
-          links.push(`[🏠代理](/list/${f_name}.more.list)`);
+          links.push(`[🏠代理](/list/${filename}.more.list)`);
         }
         return `${links.join(' ')} <br> ${icon}${count} 个频道`;
       });

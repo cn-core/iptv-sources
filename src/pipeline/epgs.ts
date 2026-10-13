@@ -16,7 +16,7 @@ export const buildEpg = async (epgSource: TEPGSource): Promise<boolean> => {
           (parseInt(hrtime.bigint().toString()) - parseInt(now.toString())) / 10e6
         } ms`
       );
-      await writeEpgXML(epgSource.f_name, text);
+      await writeEpgXML(epgSource.filename, text);
       return true;
     }
     console.log(`[WARNING] EPG ${epgSource.name} get failed!`);

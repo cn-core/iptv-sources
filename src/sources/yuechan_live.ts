@@ -1,9 +1,9 @@
 import { withGithubRawLogoProxy, type TSources } from './utils';
 
-export const yuechan_live_sources: TSources = [
+export const yuechanLiveSources: TSources = [
   {
     name: 'YueChan-Live IPTV',
-    f_name: 'ycl_iptv',
+    filename: 'ycl_iptv',
     url: 'https://raw.githubusercontent.com/YueChan/Live/main/IPTV.m3u',
     transform: (playlist, filename) => [{ filename, playlist: withGithubRawLogoProxy(playlist) }],
   },

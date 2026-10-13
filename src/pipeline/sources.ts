@@ -14,13 +14,13 @@ export interface ISourceOutputSummary {
 
 export interface ISourceBuildResult {
   source: ISource;
-  /** 至少一项；失败时只有一项，文件名为 source.f_name */
+  /** 至少一项；失败时只有一项，文件名为 source.filename */
   outputs: ISourceOutputSummary[];
 }
 
 const failed = (source: ISource): ISourceBuildResult => {
   console.log(`[WARNING] m3u ${source.name} get failed!`);
-  return { source, outputs: [{ filename: source.f_name, channelCount: undefined }] };
+  return { source, outputs: [{ filename: source.filename, channelCount: undefined }] };
 };
 
 /** 按频道 id 收集所有输出中的播放地址，写入 sources.json */

@@ -2,7 +2,7 @@ import 'dotenv/config';
 
 import type { IChannel, IPlaylist } from '../playlist';
 import { mapPlaylistText, parseM3u } from '../playlist';
-import { converter, get_github_raw_proxy_url, replace_github_raw_proxy_url } from '../utils';
+import { converter, getGithubRawProxyUrl, replaceGithubRawProxyUrl } from '../utils';
 
 /** 需要拉取的远程文件 */
 export interface IRemoteSource {
@@ -13,7 +13,7 @@ export interface IRemoteSource {
    * 会输出到 m3u/fmml/ipv6.m3u、m3u/txt/fmml/ipv6.txt 等。
    * 请统一使用 `/`（而非 `\`），因为同一个值也会被拼进 URL。
    */
-  f_name: string;
+  filename: string;
   url: string;
 }
 
@@ -35,7 +35,7 @@ export interface ISourceOutput {
 export interface ISource extends IRemoteSource {
   /** 把上游原文解析为播放列表，默认按 m3u 解析 */
   parse?: (raw: string) => IPlaylist;
-  /** 由播放列表生成输出文件，默认原样输出到 f_name */
+  /** 由播放列表生成输出文件，默认原样输出到 filename */
   transform?: (playlist: IPlaylist, filename: string) => ISourceOutput[];
   /** 是否把频道地址收集到 sources.json，默认 true；全量大源关闭 */
   collectSources?: boolean;
@@ -46,8 +46,8 @@ export type TSources = ISource[];
 export const buildSourceOutputs = (source: ISource, raw: string): ISourceOutput[] => {
   const playlist = (source.parse ?? parseM3u)(raw);
   return source.transform
-    ? source.transform(playlist, source.f_name)
-    : [{ filename: source.f_name, playlist }];
+    ? source.transform(playlist, source.filename)
+    : [{ filename: source.filename, playlist }];
 };
 
 /** 繁体转简体 */
@@ -55,7 +55,7 @@ export const toSimplified = (playlist: IPlaylist) => mapPlaylistText(playlist, c
 
 /** tvg-logo 中的 GitHub raw 地址走代理 */
 export const withGithubRawLogoProxy = (playlist: IPlaylist) =>
-  mapPlaylistText(playlist, replace_github_raw_proxy_url);
+  mapPlaylistText(playlist, replaceGithubRawProxyUrl);
 
 /** 去掉频道名里的 `@@123`、`[geo-blocked]` 标记 */
 export const cleanChannelMarks = (channel: IChannel): IChannel => ({
@@ -67,8 +67,6 @@ export const cleanChannelMarks = (channel: IChannel): IChannel => ({
     .trim(),
 });
 
-export const with_github_raw_url_proxy = (u: string) => {
-  return process.env.CLOSE_SOURCE_PROXY?.trim() === 'true'
-    ? u
-    : `${get_github_raw_proxy_url()}/${u}`;
+export const withGithubRawUrlProxy = (u: string) => {
+  return process.env.CLOSE_SOURCE_PROXY?.trim() === 'true' ? u : `${getGithubRawProxyUrl()}/${u}`;
 };

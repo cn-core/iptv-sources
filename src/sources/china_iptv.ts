@@ -74,9 +74,9 @@ export const getChinaIptvFileName = ({ type, province, operator }: IChinaIptvMet
   `${CHINA_IPTV_DIR}/${type}/${province}/${operator}`;
 
 /** 从 `iptv/{type}/{province}/{operator}` 文件名中解析出元数据 */
-export const parseChinaIptvFileName = (f_name: string): IChinaIptvMeta | undefined => {
+export const parseChinaIptvFileName = (filename: string): IChinaIptvMeta | undefined => {
   const match = new RegExp(`^${CHINA_IPTV_DIR}/(multicast|unicast)/([a-z]+)/([a-z]+)$`).exec(
-    f_name
+    filename
   );
   if (!match || !(match[3] in CHINA_IPTV_OPERATORS)) return undefined;
 
@@ -88,7 +88,7 @@ export const parseChinaIptvFileName = (f_name: string): IChinaIptvMeta | undefin
 };
 
 /** 组播源额外为每个网段生成一份代理版本 */
-export const china_iptv_transform: ISource['transform'] = (playlist, filename) => {
+export const chinaIptvTransform: ISource['transform'] = (playlist, filename) => {
   const original = { filename, playlist };
   if (parseChinaIptvFileName(filename)?.type !== 'multicast') {
     return [original];
@@ -101,15 +101,15 @@ const createSource = (meta: IChinaIptvMeta): ISource => ({
   name: `${CHINA_IPTV_SOURCE_PREFIX} ${CHINA_IPTV_PROVINCES[meta.province]} ${
     CHINA_IPTV_OPERATORS[meta.operator]
   } ${CHINA_IPTV_TYPES[meta.type].label}`,
-  f_name: getChinaIptvFileName(meta),
+  filename: getChinaIptvFileName(meta),
   url: `https://raw.githubusercontent.com/xisohi/CHINA-IPTV/main/${
     CHINA_IPTV_TYPES[meta.type].dir
   }/${meta.province}/${meta.operator}.txt`,
   parse: parseTxt,
-  transform: china_iptv_transform,
+  transform: chinaIptvTransform,
 });
 
-export const china_iptv_sources: TSources = (
+export const chinaIptvSources: TSources = (
   Object.keys(CHINA_IPTV_TYPES) as TChinaIptvType[]
 ).flatMap((type) =>
   Object.keys(CHINA_IPTV_PROVINCES).flatMap((province) =>

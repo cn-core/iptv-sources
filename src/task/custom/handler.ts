@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import type { ICustom, ICustomRule, ICustomRuleAppend, ICustomRuleReplacerItem } from './define';
-import { config_path, m3u_path, write_custom_path } from '../const';
+import { configPath, m3uPath, writeCustomPath } from '../const';
 import {
   getChannelName,
   type IChannel,
@@ -14,17 +14,15 @@ import {
 import { trimAny } from '../../utils';
 
 const loadConfigCustom = (): ICustom | undefined => {
-  if (!fs.existsSync(config_path)) {
+  if (!fs.existsSync(configPath)) {
     return void 0;
   }
 
-  if (fs.readdirSync(config_path).length === 0) {
+  if (fs.readdirSync(configPath).length === 0) {
     return void 0;
   }
 
-  const cfg = JSON.parse(
-    fs.readFileSync(path.join(config_path, 'custom.json'), 'utf-8')
-  ) as ICustom;
+  const cfg = JSON.parse(fs.readFileSync(path.join(configPath, 'custom.json'), 'utf-8')) as ICustom;
 
   // 去除不必要的空格
   cfg.rules = trimAny(cfg.rules);
@@ -35,7 +33,7 @@ const loadConfigCustom = (): ICustom | undefined => {
 /** m3u/txt 下的顶层文件名，即可作为 upstream 的源 */
 const getFilenames = () => {
   return fs
-    .readdirSync(path.join(m3u_path, 'txt'))
+    .readdirSync(path.join(m3uPath, 'txt'))
     .map((f) => f.replace('.txt', ''))
     .filter((f) => f !== 'channels');
 };
@@ -107,8 +105,8 @@ export const runCustomTask = () => {
 
   if (!cfg.rules || cfg.rules.length === 0) return;
 
-  if (!fs.existsSync(write_custom_path)) {
-    fs.mkdirSync(write_custom_path);
+  if (!fs.existsSync(writeCustomPath)) {
+    fs.mkdirSync(writeCustomPath);
   }
 
   getFilenames().forEach((f) => {
@@ -117,10 +115,10 @@ export const runCustomTask = () => {
 
     console.log(`Customize Source ${f}`);
 
-    const upstream = parseM3u(fs.readFileSync(path.join(m3u_path, `${f}.m3u`), 'utf-8'));
+    const upstream = parseM3u(fs.readFileSync(path.join(m3uPath, `${f}.m3u`), 'utf-8'));
     const result = applyCustomRules(upstream, rules);
 
-    fs.writeFileSync(path.join(write_custom_path, `${f}.m3u`), serializeM3u(result));
-    fs.writeFileSync(path.join(write_custom_path, `${f}.txt`), toTxt(result.channels));
+    fs.writeFileSync(path.join(writeCustomPath, `${f}.m3u`), serializeM3u(result));
+    fs.writeFileSync(path.join(writeCustomPath, `${f}.txt`), toTxt(result.channels));
   });
 };
