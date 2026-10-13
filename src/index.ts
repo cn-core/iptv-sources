@@ -1,175 +1,43 @@
-import { hrtime } from 'process';
-
 import { updateChannelsJson } from './channels';
 import { epgs_sources } from './epgs';
-import { buildEpgPwXml } from './epgs/epg_pw';
-import {
-  cleanFiles,
-  getContent,
-  mergeSources,
-  mergeTxts,
-  writeEpgJsonByDate,
-  writeEpgXML,
-  writeEpgXmlGz,
-  writeM3u,
-  writeM3uToTxt,
-  writeSources,
-} from './file';
-import { updateChannelList, updateReadme } from './readme';
-import { CHINA_IPTV_SOURCE_PREFIX, normalizeSourceFilterResults, sources } from './sources';
+import { cleanFiles, mergeSources, mergeTxts, writeEpgJsonByDate } from './file';
+import { buildEpg, buildEpgPw } from './pipeline/epgs';
+import { buildSource, type ISourceBuildResult } from './pipeline/sources';
+import { writeReadmePages } from './render';
+import { CHINA_IPTV_SOURCE_PREFIX, sources } from './sources';
 import { runCustomTask } from './task/custom';
-import { writeTvBoxJson as writeTvBoxLiveJson } from './tvbox';
-import { Collector } from './utils';
+import { writeTvBoxJson } from './tvbox';
 
-interface ISourceBuildResult {
-  name: string;
-  filename: string;
-  channelCount: number | undefined;
-}
+/** TVBox 依赖远程配置，失败时不能阻断后续 channels.json / README 的生成 */
+const writeTvBoxLiveJson = async (results: ISourceBuildResult[]) => {
+  try {
+    // 运营商 IPTV 源只能在对应网络内播放，且数量很大，不放进 TVBox 配置
+    const tvboxSources = results
+      .filter(({ source }) => !source.name.startsWith(CHINA_IPTV_SOURCE_PREFIX))
+      .flatMap(({ source, outputs }) =>
+        outputs.map(({ filename }) => ({ name: source.name, f_name: filename }))
+      );
+    await writeTvBoxJson('tvbox', tvboxSources);
+  } catch (e) {
+    console.warn('[WARNING] Write TVBox json failed:', e);
+  }
+};
 
 cleanFiles();
 
-// 执行脚本
 (async () => {
   try {
-    const sourcesResult = await Promise.allSettled(
-      sources.map(async (sr) => {
-        console.log(`[TASK] Fetch ${sr.name}`);
-        try {
-          const [ok, text, now] = await getContent(sr);
-          if (ok && !!text) {
-            console.log(
-              `Fetch m3u from ${sr.name} finished, cost ${
-                (parseInt(hrtime.bigint().toString()) - parseInt(now.toString())) / 10e6
-              } ms`
-            );
-
-            const sourcesCollector = Collector(undefined, (v) => !/^([a-z]+):\/\//.test(v));
-
-            const filterResults = normalizeSourceFilterResults(
-              sr.filter(
-                text as string,
-                ['o_all', 'all'].includes(sr.f_name) ? 'skip' : 'normal',
-                sourcesCollector.collect,
-                sr.f_name
-              )
-            );
-
-            await Promise.all(
-              filterResults.map(async ({ filename, m3u }) => {
-                await writeM3u(filename, m3u);
-                await writeM3uToTxt(sr.name, filename, m3u);
-                await writeSources(sr.name, filename, sourcesCollector.result());
-                updateChannelList(sr.name, filename, m3u);
-              })
-            );
-
-            return filterResults.map(
-              ({ filename, channelCount }): ISourceBuildResult => ({
-                name: sr.name,
-                filename,
-                channelCount,
-              })
-            );
-          }
-          console.log(`[WARNING] m3u ${sr.name} get failed!`);
-          return [
-            {
-              name: sr.name,
-              filename: sr.f_name,
-              channelCount: undefined,
-            } satisfies ISourceBuildResult,
-          ];
-        } catch (e) {
-          console.log(e);
-          console.log(`[WARNING] m3u ${sr.name} get failed!`);
-          return [
-            {
-              name: sr.name,
-              filename: sr.f_name,
-              channelCount: undefined,
-            } satisfies ISourceBuildResult,
-          ];
-        }
-      })
-    );
-
-    const epgs = await Promise.allSettled(
-      epgs_sources.map(async (epg_sr) => {
-        console.log(`[TASK] Fetch EPG ${epg_sr.name}`);
-        try {
-          const [ok, text, now] = await getContent(epg_sr);
-
-          if (ok && !!text) {
-            console.log(
-              `Fetch EPG from ${epg_sr.name} finished, cost ${
-                (parseInt(hrtime.bigint().toString()) - parseInt(now.toString())) / 10e6
-              } ms`
-            );
-            await writeEpgXML(epg_sr.f_name, text as string);
-            return true;
-          }
-          console.log(`[WARNING] EPG ${epg_sr.name} get failed!`);
-          return false;
-        } catch (_e) {
-          console.warn('Error fetching EPG', _e, epg_sr);
-          console.log(`[WARNING] EPG ${epg_sr.name} get failed!`);
-          return false;
-        }
-      })
-    );
-
-    // epg.pw EPG: 从频道列表页抓取所有频道并逐一拉取 EPG，合并为完整 XML
-    // 仅输出 .xml.gz：合并后体积可能超过 Cloudflare Pages 25MB 单文件上限
-    try {
-      console.log('[TASK] Build EPG from epg.pw ...');
-      const epgPwXml = await buildEpgPwXml();
-      await writeEpgXmlGz('epg_pw', epgPwXml);
-      console.log('[TASK] EPG from epg.pw written successfully');
-    } catch (e) {
-      console.warn('[WARNING] EPG from epg.pw failed:', e);
-    }
+    const sourceResults = await Promise.all(sources.map(buildSource));
+    const epgResults = await Promise.all(epgs_sources.map(buildEpg));
+    await buildEpgPw();
 
     console.log(`[TASK] Write important files`);
-    const generatedSourceGroups = sourcesResult.map((result, index): ISourceBuildResult[] =>
-      result.status === 'fulfilled'
-        ? result.value
-        : [
-            {
-              name: sources[index].name,
-              filename: sources[index].f_name,
-              channelCount: undefined,
-            },
-          ]
-    );
-    const generatedSources = generatedSourceGroups.flat();
-    const outputSources = generatedSources.map(({ name, filename }) => ({
-      name,
-      f_name: filename,
-    }));
-    const sources_res = generatedSources.map(({ channelCount }) => channelCount);
-    const readmeSources = generatedSourceGroups.map((group) =>
-      group.map(({ name, filename }) => ({ name, f_name: filename }))
-    );
-    const readmeSourcesRes = generatedSourceGroups.map((group) =>
-      group.map(({ channelCount }) => channelCount)
-    );
-    const epgs_res = epgs.map((r) => r.status === 'fulfilled' && r.value);
     mergeTxts();
     mergeSources();
     await writeEpgJsonByDate();
-    // TVBox 依赖远程配置，失败时不能阻断后续 channels.json / README 的生成
-    try {
-      // 运营商 IPTV 源只能在对应网络内播放，且数量很大，不放进 TVBox 配置
-      await writeTvBoxLiveJson(
-        'tvbox',
-        outputSources.filter(({ name }) => !name.startsWith(CHINA_IPTV_SOURCE_PREFIX))
-      );
-    } catch (e) {
-      console.warn('[WARNING] Write TVBox json failed:', e);
-    }
-    updateChannelsJson(outputSources, sources_res, epgs_sources);
-    updateReadme(readmeSources, readmeSourcesRes, epgs_sources, epgs_res);
+    await writeTvBoxLiveJson(sourceResults);
+    updateChannelsJson(sourceResults, epgs_sources);
+    writeReadmePages(sourceResults, epgs_sources, epgResults);
 
     console.log(`[TASK] Make custom sources`);
     runCustomTask();

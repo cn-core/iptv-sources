@@ -6,10 +6,8 @@ import { fileURLToPath } from 'url';
 import { promisify } from 'util';
 import { gzip } from 'zlib';
 
-import type { TEPGSource } from './epgs/utils';
-import type { ISource } from './sources';
-import { CHINA_IPTV_DIR, with_github_raw_url_proxy } from './sources';
-import { m3u2txt } from './utils';
+import { type IPlaylist, serializeM3u, toTxt } from './playlist';
+import { CHINA_IPTV_DIR, type IRemoteSource, with_github_raw_url_proxy } from './sources';
 
 import { mergeByDateAndChannel, parseEpgXml, sanitizeChannelFileName } from './epgs/parser';
 
@@ -85,7 +83,7 @@ const withFetchSlot = async <T>(task: () => Promise<T>): Promise<T> => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const getContent = (src: ISource | TEPGSource) =>
+export const getContent = (src: IRemoteSource) =>
   withFetchSlot(async () => {
     const now = hrtime.bigint();
     const url = /^https:\/\/raw.githubusercontent.com\//.test(src.url)
@@ -106,9 +104,9 @@ export const getContent = (src: ISource | TEPGSource) =>
     }
   });
 
-export const writeM3u = async (name: string, m3u: string) => {
+export const writeM3u = async (f_name: string, playlist: IPlaylist) => {
   const m3uDir = await createSubDirectory('m3u');
-  await writeFile(await resolveOutputFile(m3uDir, name, '.m3u'), m3u);
+  await writeFile(await resolveOutputFile(m3uDir, f_name, '.m3u'), serializeM3u(playlist));
 };
 
 export const writeSources = async (
@@ -131,12 +129,9 @@ export const writeSources = async (
   );
 };
 
-export const writeM3uToTxt = async (name: string, f_name: string, m3u: string) => {
-  const m3uArray = m3u.split('\n');
-  const txt = m3u2txt(m3uArray);
-
+export const writeTxt = async (f_name: string, playlist: IPlaylist) => {
   const txtDir = await createSubDirectory('m3u', 'txt');
-  await writeFile(await resolveOutputFile(txtDir, f_name, '.txt'), txt);
+  await writeFile(await resolveOutputFile(txtDir, f_name, '.txt'), toTxt(playlist.channels));
 };
 
 export const mergeTxts = () => {
