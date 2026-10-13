@@ -3,6 +3,7 @@ import path from 'path';
 
 import { parseTvboxJson, type TVBoxConfig } from '@whyun/tv-tools';
 import { projectRoot } from '../file';
+import { CHANNEL_LOGO_BASE_URL } from '../playlist';
 import { getCustomUrl } from '../utils';
 const TVBOX_JSON_URL = 'http://tvbox.xn--4kq62z5rby2qupq9ub.top/';
 async function fetchBodyTextWithOkhttp(url: string): Promise<{
@@ -52,7 +53,7 @@ const genTvBoxJson = async (srcs: ITvBoxLiveSrc[]): Promise<TVBoxConfig> => {
     type: 0,
     url: `${getCustomUrl()}/txt/${filename}.txt`,
     epg: `${getCustomUrl()}/epg/pw-7/{date}/{name}.json`,
-    logo: `https://tv-res.pages.dev/logo/{name}.png`,
+    logo: `${CHANNEL_LOGO_BASE_URL}/{name}.png`,
   }));
 
   return j;

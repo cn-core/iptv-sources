@@ -4,6 +4,7 @@ import path from 'path';
 import type { ICustom, ICustomRule, ICustomRuleAppend, ICustomRuleReplacerItem } from './define';
 import { configPath, m3uPath, writeCustomPath } from '../const';
 import {
+  buildChannelExtinf,
   getChannelName,
   type IChannel,
   type IPlaylist,
@@ -80,11 +81,7 @@ const replaceChannel = (rule: ICustomRule, channel: IChannel): IChannel =>
 const toAppendedChannel = ({ name, url, extinf }: ICustomRuleAppend): IChannel => {
   if (extinf) return { extinf, url };
 
-  const _name = name.trim();
-  return {
-    extinf: `#EXTINF:-1 tvg-name="${_name}" tvg-id="${_name}" group-title="Custom",${_name}`,
-    url,
-  };
+  return { extinf: buildChannelExtinf(name.trim(), { group: 'Custom' }), url };
 };
 
 /** 依次应用同一 upstream 的所有规则，每条规则的结果拼接在一起 */

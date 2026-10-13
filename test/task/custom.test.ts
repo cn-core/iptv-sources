@@ -79,7 +79,8 @@ describe('applyCustomRules', () => {
     expect(result.channels).toEqual([
       { extinf: '#EXTINF:-1 group-title="央视",CCTV1', url: 'http://a.com/cctv1' },
       {
-        extinf: '#EXTINF:-1 tvg-name="My TV" tvg-id="My TV" group-title="Custom",My TV',
+        extinf:
+          '#EXTINF:-1 tvg-id="My TV" tvg-name="My TV" tvg-logo="https://tv-res.pages.dev/logo/My TV.png" group-title="Custom",My TV',
         url: 'http://my.tv',
       },
       { extinf: '#EXTINF:-1,Raw', url: 'http://raw.tv' },

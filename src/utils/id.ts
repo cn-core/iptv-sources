@@ -1,8 +1,9 @@
+import { getChannelName } from '../playlist/extinf';
 import { converter } from './converter';
 
+/** 用于跨源匹配同一频道的 id：繁转简、小写，并去掉清晰度、括号备注等后缀 */
 export const getChannelId = (extinf: string) => {
-  const regExp = /#EXTINF:-1([^,]*),(.*)/;
-  const name = converter(regExp.exec(extinf)![2]).toLowerCase();
+  const name = converter(getChannelName(extinf)).toLowerCase();
 
   return name
     .replace(/\[([^]]*)\]/g, '')

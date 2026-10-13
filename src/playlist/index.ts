@@ -1,3 +1,7 @@
+import { buildChannelExtinf, LIVE_DURATION, parseExtinf } from './extinf';
+
+export * from './extinf';
+
 /** 一个频道：`#EXTINF` 行 + 播放地址 */
 export interface IChannel {
   extinf: string;
@@ -10,22 +14,11 @@ export interface IPlaylist {
   channels: IChannel[];
 }
 
-export const EXTINF_REGEXP = /^#EXTINF:-1([^,]*),(.*)/;
 const HEADER_REGEXP = /#EXTM3U/;
 const URL_REGEXP = /^([a-z][a-z0-9+.-]*):\/\/([^/]+)/i;
 
 /** 是否为带协议头的播放地址，如 `http://host/...`、`rtp://239.0.0.1:1234` */
 export const isStreamUrl = (url: string | undefined) => !!url && URL_REGEXP.test(url);
-
-/** EXTINF 行中第一个逗号之后的频道名（未 trim） */
-export const getChannelName = (extinf: string) => EXTINF_REGEXP.exec(extinf)?.[2] ?? '';
-
-/** 读取 EXTINF 中的属性，如 `group-title` */
-export const getChannelAttr = (extinf: string, key: string) => {
-  const metadata = extinf.split(',', 1)[0];
-  const match = new RegExp(`${key}="([^"]*)"`).exec(metadata);
-  return match?.[1];
-};
 
 const splitLines = (raw: string) =>
   raw
@@ -36,7 +29,7 @@ const splitLines = (raw: string) =>
     .filter((line) => !!line);
 
 /**
- * 解析 m3u：只保留 `#EXTM3U` 头部，以及紧挨着的「`#EXTINF:-1...` + 带协议的地址」行对，
+ * 解析 m3u：只保留 `#EXTM3U` 头部，以及紧挨着的「直播频道 `#EXTINF:-1...` + 带协议的地址」行对，
  * 其余行（注释、`#EXTVLCOPT` 等）全部丢弃。
  */
 export const parseM3u = (raw: string): IPlaylist => {
@@ -49,7 +42,7 @@ export const parseM3u = (raw: string): IPlaylist => {
       continue;
     }
 
-    if (EXTINF_REGEXP.test(lines[i]) && isStreamUrl(lines[i + 1])) {
+    if (parseExtinf(lines[i])?.duration === LIVE_DURATION && isStreamUrl(lines[i + 1])) {
       playlist.channels.push({ extinf: lines[i], url: lines[i + 1] });
       i++;
     }
@@ -58,7 +51,8 @@ export const parseM3u = (raw: string): IPlaylist => {
   return playlist;
 };
 
-const TXT_HEADER = '#EXTM3U x-tvg-url="https://tv.whyun.com/epg/51zmt.xml"';
+/** txt 转出的 m3u 使用的 EPG 地址 */
+export const TXT_EPG_URL = 'https://tv.whyun.com/epg/51zmt.xml';
 
 /**
  * 解析 `名称,地址` 格式的 txt，`分组,#genre#` 行作为后续频道的分组，
@@ -87,15 +81,10 @@ export const parseTxt = (raw: string): IPlaylist => {
       continue;
     }
 
-    const logoName = name.replace(/CCTV/g, 'cctv');
-    channels.push({
-      extinf: `#EXTINF:-1 tvg-id="${name}" tvg-name="${name}" \
-tvg-logo="https://tv-res.pages.dev/logo/${logoName}.png" group-title="${group}",${name}`,
-      url,
-    });
+    channels.push({ extinf: buildChannelExtinf(name, { group }), url });
   }
 
-  return { header: TXT_HEADER, channels };
+  return { header: `#EXTM3U x-tvg-url="${TXT_EPG_URL}"`, channels };
 };
 
 export const serializeM3u = ({ header, channels }: IPlaylist) =>
@@ -108,10 +97,9 @@ export const toTxt = (channels: IChannel[]) => {
   const groups = new Map<string, string>();
 
   for (const { extinf, url } of channels) {
-    const commaIndex = extinf.indexOf(',');
-    const metadata = commaIndex === -1 ? extinf : extinf.slice(0, commaIndex).trim();
-    const channelName = commaIndex === -1 ? '' : extinf.slice(commaIndex + 1).trim();
-    const group = getChannelAttr(metadata, 'group-title')?.trim() || 'Undefined';
+    const parsed = parseExtinf(extinf);
+    const channelName = parsed?.name.trim() ?? '';
+    const group = parsed?.attrs['group-title']?.trim() || 'Undefined';
 
     groups.set(group, (groups.get(group) ?? '') + `${channelName.replace(/\s+/g, '_')},${url}\n`);
   }

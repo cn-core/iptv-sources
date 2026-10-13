@@ -1,13 +1,13 @@
-import { dedupeChannels } from '../playlist';
+import { dedupeChannels, getChannelAttr } from '../playlist';
 import { cleanChannelMarks, toSimplified } from './utils';
 import type { ISource, TSources } from './utils';
 
-const TVG_NAME_REGEXP = /#EXTINF:-1\s+tvg-name="([^"]+)"/;
+const getTvgName = (extinf: string) => getChannelAttr(extinf, 'tvg-name');
 
 /** 只保留带 tvg-name 的频道，按 tvg-name 去重 */
 export const epgPwTransform: ISource['transform'] = ({ header, channels }, filename) => {
-  const candidates = channels.filter(({ extinf }) => TVG_NAME_REGEXP.test(extinf));
-  const deduped = dedupeChannels(candidates, ({ extinf }) => TVG_NAME_REGEXP.exec(extinf)![1]);
+  const candidates = channels.filter(({ extinf }) => !!getTvgName(extinf));
+  const deduped = dedupeChannels(candidates, ({ extinf }) => getTvgName(extinf)!);
 
   return [
     {
