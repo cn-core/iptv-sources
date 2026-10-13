@@ -50,7 +50,9 @@ describe('qwerttvv_bj_iptv multicast sources', () => {
 
       expect(outputs).toHaveLength(1);
       expect(outputs[0].filename).toBe(expected);
-      expect(serializeM3u(outputs[0].playlist)).toBe(raw);
+      expect(outputs[0].playlist.channels.map(({ url }) => url)).toEqual(
+        parseM3u(raw).channels.map(({ url }) => url)
+      );
     }
   );
 });

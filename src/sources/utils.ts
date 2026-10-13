@@ -1,8 +1,8 @@
 import 'dotenv/config';
 
 import type { IChannel, IPlaylist } from '../playlist';
-import { mapPlaylistText, parseM3u } from '../playlist';
-import { converter, getGithubRawProxyUrl, replaceGithubRawProxyUrl } from '../utils';
+import { mapPlaylistText, normalizePlaylist, parseM3u } from '../playlist';
+import { getGithubRawProxyUrl, replaceGithubRawProxyUrl } from '../utils';
 
 /** 需要拉取的远程文件 */
 export interface IRemoteSource {
@@ -39,33 +39,25 @@ export interface ISource extends IRemoteSource {
   transform?: (playlist: IPlaylist, filename: string) => ISourceOutput[];
   /** 是否把频道地址收集到 sources.json，默认 true；全量大源关闭 */
   collectSources?: boolean;
+  /** 是否对输出做默认改写（见 normalizeChannel），默认 true；需要原样输出时关闭 */
+  normalize?: boolean;
 }
 
 export type TSources = ISource[];
 
 export const buildSourceOutputs = (source: ISource, raw: string): ISourceOutput[] => {
   const playlist = (source.parse ?? parseM3u)(raw);
-  return source.transform
+  const outputs = source.transform
     ? source.transform(playlist, source.filename)
     : [{ filename: source.filename, playlist }];
-};
 
-/** 繁体转简体 */
-export const toSimplified = (playlist: IPlaylist) => mapPlaylistText(playlist, converter);
+  if (source.normalize === false) return outputs;
+  return outputs.map((output) => ({ ...output, playlist: normalizePlaylist(output.playlist) }));
+};
 
 /** tvg-logo 中的 GitHub raw 地址走代理 */
 export const withGithubRawLogoProxy = (playlist: IPlaylist) =>
   mapPlaylistText(playlist, replaceGithubRawProxyUrl);
-
-/** 去掉频道名里的 `@@123`、`[geo-blocked]` 标记 */
-export const cleanChannelMarks = (channel: IChannel): IChannel => ({
-  ...channel,
-  extinf: channel.extinf
-    .replace(/@@[0-9]*/g, '')
-    .replace(/\[geo-blocked\]/, '')
-    .replace(/\[Geo-blocked\]/, '')
-    .trim(),
-});
 
 export const withGithubRawUrlProxy = (u: string) => {
   return process.env.CLOSE_SOURCE_PROXY?.trim() === 'true' ? u : `${getGithubRawProxyUrl()}/${u}`;

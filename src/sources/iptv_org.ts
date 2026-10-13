@@ -1,6 +1,5 @@
 import { dedupeChannels } from '../playlist';
 import { getChannelId, isFilteredChannel } from '../utils';
-import { cleanChannelMarks, toSimplified } from './utils';
 import type { ISource, TSources } from './utils';
 
 /** 过滤屏蔽频道，按频道 id 去重 */
@@ -13,7 +12,7 @@ export const iptvOrgTransform: ISource['transform'] = ({ header, channels }, fil
   return [
     {
       filename,
-      playlist: toSimplified({ header, channels: deduped.map(cleanChannelMarks) }),
+      playlist: { header, channels: deduped },
       candidates,
     },
   ];

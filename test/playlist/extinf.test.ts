@@ -78,4 +78,10 @@ describe('channel helpers', () => {
   it('lowercases CCTV in logo urls', () => {
     expect(getChannelLogoUrl('CCTV5+')).toBe('https://tv-res.pages.dev/logo/cctv5+.png');
   });
+
+  it('encodes unsafe characters in logo urls but keeps Chinese', () => {
+    expect(getChannelLogoUrl('凤凰 中文#1/HD?')).toBe(
+      'https://tv-res.pages.dev/logo/凤凰%20中文%231%2FHD%3F.png'
+    );
+  });
 });

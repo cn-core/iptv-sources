@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { parseTxt } from '../../src/playlist';
-import { buildSourceOutputs, cleanChannelMarks, type ISource } from '../../src/sources/utils';
+import { buildSourceOutputs, type ISource } from '../../src/sources/utils';
 
 const m3u = ['#EXTM3U', '#EXTINF:-1,Channel A', 'https://a.com'].join('\n');
 
 describe('buildSourceOutputs', () => {
-  it('parses m3u and emits one output named filename by default', () => {
+  it('parses m3u, normalizes it and emits one output named filename by default', () => {
     const source: ISource = { name: 'test', filename: 'test_m3u', url: '' };
 
     expect(buildSourceOutputs(source, m3u)).toEqual([
@@ -14,9 +14,23 @@ describe('buildSourceOutputs', () => {
         filename: 'test_m3u',
         playlist: {
           header: '#EXTM3U',
-          channels: [{ extinf: '#EXTINF:-1,Channel A', url: 'https://a.com' }],
+          channels: [
+            {
+              extinf:
+                '#EXTINF:-1 tvg-name="Channel A" tvg-logo="https://tv-res.pages.dev/logo/Channel%20A.png" group-title="未分类",Channel A',
+              url: 'https://a.com',
+            },
+          ],
         },
       },
+    ]);
+  });
+
+  it('keeps the upstream lines when normalize is false', () => {
+    const source: ISource = { name: 'test', filename: 'test_m3u', url: '', normalize: false };
+
+    expect(buildSourceOutputs(source, m3u)[0].playlist.channels).toEqual([
+      { extinf: '#EXTINF:-1,Channel A', url: 'https://a.com' },
     ]);
   });
 
@@ -37,13 +51,5 @@ describe('buildSourceOutputs', () => {
     expect(outputs[0].playlist.channels[0].extinf).toContain(
       'tvg-logo="https://tv-res.pages.dev/logo/cctv1.png"'
     );
-  });
-});
-
-describe('cleanChannelMarks', () => {
-  it('removes @@ ids and geo-blocked marks', () => {
-    expect(
-      cleanChannelMarks({ extinf: '#EXTINF:-1,CCTV1@@123 [Geo-blocked] ', url: 'http://a' })
-    ).toEqual({ extinf: '#EXTINF:-1,CCTV1', url: 'http://a' });
   });
 });

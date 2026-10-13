@@ -1,6 +1,8 @@
 import { buildChannelExtinf, LIVE_DURATION, parseExtinf } from './extinf';
+import { DEFAULT_GROUP } from './normalize';
 
 export * from './extinf';
+export * from './normalize';
 
 /** 一个频道：`#EXTINF` 行 + 播放地址 */
 export interface IChannel {
@@ -65,7 +67,7 @@ export const parseTxt = (raw: string): IPlaylist => {
     .split('\n')
     .filter((line) => !!line);
   const channels: IChannel[] = [];
-  let group = '未分类';
+  let group = DEFAULT_GROUP;
 
   for (const line of lines) {
     const [name, url] = line

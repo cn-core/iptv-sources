@@ -1,5 +1,4 @@
 import { dedupeChannels, getChannelAttr } from '../playlist';
-import { cleanChannelMarks, toSimplified } from './utils';
 import type { ISource, TSources } from './utils';
 
 const getTvgName = (extinf: string) => getChannelAttr(extinf, 'tvg-name');
@@ -12,7 +11,7 @@ export const epgPwTransform: ISource['transform'] = ({ header, channels }, filen
   return [
     {
       filename,
-      playlist: toSimplified({ header, channels: deduped.map(cleanChannelMarks) }),
+      playlist: { header, channels: deduped },
       candidates,
     },
   ];
