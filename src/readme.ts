@@ -25,7 +25,8 @@ export interface IREADMESource {
 }
 
 export type TREADMESources = IREADMESource[][];
-export type TREADMESourceResult = [status: string, channelCount: number | undefined];
+/** 频道数，undefined 表示拉取失败 */
+export type TREADMESourceResult = number | undefined;
 export type TREADMESourceResults = TREADMESourceResult[][];
 export type TREADMEEPGSources = TEPGSource[];
 
@@ -103,9 +104,7 @@ export const renderSourceRows = (sources: TREADMESources, sourcesResults: TREADM
         source.f_name
       }.txt](/txt/${source.f_name}.txt) | [List for ${source.name}](/list/${
         source.f_name
-      }.list)${moreLink} | ${
-        sourceResult?.[1] === undefined ? 'update failed' : sourceResult[1]
-      } | ${sourceResult?.[0] === 'rollback' ? '✅' : '-'} |`;
+      }.list)${moreLink} | ${sourceResult === undefined ? 'update failed' : sourceResult} |`;
     })
     .filter(Boolean)
     .join('\n');
@@ -130,7 +129,7 @@ export const renderIptvRegionPage = (
       return;
     }
 
-    counts.set(source.f_name, sourcesResults[index]?.[0]?.[1]);
+    counts.set(source.f_name, sourcesResults[index]?.[0]);
   });
 
   const renderTable = (type: TChinaIptvType) => {
@@ -203,12 +202,7 @@ const writeIptvRegionPage = (sources: TREADMESources, sourcesResults: TREADMESou
   );
 };
 
-export const updateChannelList = (
-  name: string,
-  f_name: string,
-  m3u: string,
-  rollback: boolean = false
-) => {
+export const updateChannelList = (name: string, f_name: string, m3u: string) => {
   const list_temp_p = path.join(path.resolve(), 'LIST.temp.md');
   const list = fs.readFileSync(list_temp_p, 'utf8').toString();
 
@@ -233,9 +227,7 @@ export const updateChannelList = (
   const after = list
     .replace(
       '<!-- list_title_here -->',
-      `# List for **${name}**${
-        rollback ? '(Rollback)' : ''
-      }\n\n> M3U: [${f_name}.m3u](/${f_name}.m3u), TXT: [${f_name}.txt](/txt/${f_name}.txt)`
+      `# List for **${name}**\n\n> M3U: [${f_name}.m3u](/${f_name}.m3u), TXT: [${f_name}.txt](/txt/${f_name}.txt)`
     )
     .replace(
       '<!-- channels_here -->',
@@ -257,7 +249,7 @@ export const updateReadme = (
   sources: TREADMESources,
   sources_res: TREADMESourceResults,
   epgs: TREADMEEPGSources,
-  epgs_res: Array<[string | undefined]>
+  epgs_res: boolean[]
 ) => {
   const readme_temp_p = path.join(path.resolve(), 'README.temp.md');
   const readme = fs.readFileSync(readme_temp_p, 'utf8').toString();
@@ -270,11 +262,7 @@ export const updateReadme = (
         ?.map(
           (e, idx) =>
             `| ${e.name} | [${e.f_name}.xml](/epg/${e.f_name}.xml) | ${
-              epgs_res?.[idx]?.[0]
-                ? epgs_res?.[idx]?.[0] === 'rollback'
-                  ? '✅'
-                  : '-'
-                : 'update failed'
+              epgs_res?.[idx] ? '✅' : 'update failed'
             } |`
         )
         .join('\n')}

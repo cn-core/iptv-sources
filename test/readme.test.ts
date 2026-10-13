@@ -12,20 +12,14 @@ describe('renderSourceRows', () => {
         ],
         [{ name: 'Single source', f_name: 'single' }],
       ],
-      [
-        [
-          ['normal', 10],
-          ['normal', 20],
-        ],
-        [['rollback', 30]],
-      ]
+      [[10, 20], [30]]
     );
 
     expect(markdown).toContain('multi_192_168_0.m3u');
     expect(markdown).not.toContain('multi_192_168_1.m3u');
-    expect(markdown).toContain('| 10 | - |');
+    expect(markdown).toContain('| 10 |');
     expect(markdown).toContain('single.m3u');
-    expect(markdown).toContain('| 30 | ✅ |');
+    expect(markdown).toContain('| 30 |');
   });
 
   it('adds a more link for LAN outputs', () => {
@@ -37,13 +31,7 @@ describe('renderSourceRows', () => {
           { name: 'LAN source', f_name: 'lan_10_0_0' },
         ],
       ],
-      [
-        [
-          ['normal', 10],
-          ['normal', 10],
-          ['normal', 10],
-        ],
-      ]
+      [[10, 10, 10]]
     );
 
     expect(markdown).toContain('**[局域网 IP 列表](/list/lan.more.list)**');
@@ -55,7 +43,7 @@ describe('renderSourceRows', () => {
         [{ name: 'CHINA-IPTV 北京 联通 单播', f_name: 'iptv/unicast/beijing/unicom' }],
         [{ name: 'Single source', f_name: 'single' }],
       ],
-      [[['normal', 10]], [['normal', 20]]]
+      [[10], [20]]
     );
 
     expect(markdown).not.toContain('iptv/');
@@ -90,15 +78,7 @@ describe('renderIptvRegionPage', () => {
       [{ name: 'CHINA-IPTV 北京 移动 单播', f_name: 'iptv/unicast/beijing/mobile' }],
       [{ name: 'Single source', f_name: 'single' }],
     ],
-    [
-      [
-        ['normal', 86],
-        ['normal', 86],
-      ],
-      [['normal', undefined]],
-      [['normal', 120]],
-      [['normal', 5]],
-    ]
+    [[86, 86], [undefined], [120], [5]]
   );
   const [multicast, unicast] = markdown.split('## 🔗单播');
 

@@ -21,13 +21,10 @@ import { runCustomTask } from './task/custom';
 import { writeTvBoxJson as writeTvBoxLiveJson } from './tvbox';
 import { Collector } from './utils';
 
-type SourceBuildStatus = 'normal' | 'rollback';
-
 interface ISourceBuildResult {
   name: string;
   filename: string;
   channelCount: number | undefined;
-  status: SourceBuildStatus;
 }
 
 cleanFiles();
@@ -72,7 +69,6 @@ cleanFiles();
                 name: sr.name,
                 filename,
                 channelCount,
-                status: 'normal',
               })
             );
           }
@@ -82,7 +78,6 @@ cleanFiles();
               name: sr.name,
               filename: sr.f_name,
               channelCount: undefined,
-              status: 'normal',
             } satisfies ISourceBuildResult,
           ];
         } catch (e) {
@@ -93,7 +88,6 @@ cleanFiles();
               name: sr.name,
               filename: sr.f_name,
               channelCount: undefined,
-              status: 'normal',
             } satisfies ISourceBuildResult,
           ];
         }
@@ -113,14 +107,14 @@ cleanFiles();
               } ms`
             );
             await writeEpgXML(epg_sr.f_name, text as string);
-            return ['normal'];
+            return true;
           }
           console.log(`[WARNING] EPG ${epg_sr.name} get failed!`);
-          return [void 0];
+          return false;
         } catch (_e) {
           console.warn('Error fetching EPG', _e, epg_sr);
           console.log(`[WARNING] EPG ${epg_sr.name} get failed!`);
-          return [void 0];
+          return false;
         }
       })
     );
@@ -137,7 +131,6 @@ cleanFiles();
     }
 
     console.log(`[TASK] Write important files`);
-    type EpgSettled = PromiseSettledResult<string[] | undefined[]>;
     const generatedSourceGroups = sourcesResult.map((result, index): ISourceBuildResult[] =>
       result.status === 'fulfilled'
         ? result.value
@@ -146,7 +139,6 @@ cleanFiles();
               name: sources[index].name,
               filename: sources[index].f_name,
               channelCount: undefined,
-              status: 'normal',
             },
           ]
     );
@@ -155,21 +147,14 @@ cleanFiles();
       name,
       f_name: filename,
     }));
-    const sources_res = generatedSources.map(
-      ({ status, channelCount }): [SourceBuildStatus, number | undefined] => [status, channelCount]
-    );
+    const sources_res = generatedSources.map(({ channelCount }) => channelCount);
     const readmeSources = generatedSourceGroups.map((group) =>
       group.map(({ name, filename }) => ({ name, f_name: filename }))
     );
     const readmeSourcesRes = generatedSourceGroups.map((group) =>
-      group.map(({ status, channelCount }): [SourceBuildStatus, number | undefined] => [
-        status,
-        channelCount,
-      ])
+      group.map(({ channelCount }) => channelCount)
     );
-    const epgs_res = epgs.map((r: EpgSettled) =>
-      r.status === 'fulfilled' ? r.value : undefined
-    ) as Array<[string | undefined]>;
+    const epgs_res = epgs.map((r) => r.status === 'fulfilled' && r.value);
     mergeTxts();
     mergeSources();
     await writeEpgJsonByDate();

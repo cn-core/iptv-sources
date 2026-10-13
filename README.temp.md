@@ -33,14 +33,14 @@
 
 ## Channel
 
-| channel | url | list | count | isRollback |
-| ------- | --- | ---- | ----- | ---------- |
+| channel | url | list | count |
+| ------- | --- | ---- | ----- |
 <!-- channels_here -->
 
 ## EPG
 
-| epg | url | isRollback |
-| --- | --- | ---------- |
+| epg | url | status |
+| --- | --- | ------ |
 <!-- epgs_here -->
 
 ## TVBox EPG 使用

@@ -21,7 +21,7 @@ export interface ISource {
   url: string;
   filter: (
     raw: string,
-    caller: 'normal' | 'skip' | 'rollback',
+    caller: 'normal' | 'skip',
     collectFn: ((k: string, v: string) => void) | undefined,
     filename: string
   ) => TSourceFilterResult | TSourceFilterResult[];
