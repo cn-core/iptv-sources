@@ -59,6 +59,11 @@ describe('toStandardName', () => {
     ['信号测试1 6M1080', '信号测试1'],
     ['(!!)(箱)音乐欣赏', '音乐欣赏'],
     ['CCTV 4K超高清', 'CCTV 4K超高清'],
+    ['CCTV 4K', 'CCTV 4K'],
+    ['cctv 4k', 'cctv 4k'],
+    ['CCTV 8K', 'CCTV 8K'],
+    ['CCTV16 4K', 'CCTV16'],
+    ['SiTV欢笑剧场4K 12M2160', 'SiTV欢笑剧场4K'],
     ['北京卫视', '北京卫视'],
   ])('%s -> %s', (name, expected) => {
     expect(toStandardName(name)).toBe(expected);

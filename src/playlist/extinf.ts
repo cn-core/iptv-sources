@@ -43,7 +43,10 @@ export const toStandardName = (name: string) => {
     .trim()
     .replace(/\/[A-Za-z0-9]+$/, '')
     .replace(/\.\d*$/, '')
-    .replace(/ +\d+[A-Za-z]?\d*$/, '')
+    .replace(/ +\d+[A-Za-z]?\d*$/, (suffix, offset: number, whole: string) =>
+      // `CCTV 4K` 中的 4K 是频道名本身，只有剩下的部分含数字或中文时才视为后缀
+      /[\d一-鿿]/.test(whole.slice(0, offset)) ? '' : suffix
+    )
     .trim();
   return standard || name.trim();
 };
