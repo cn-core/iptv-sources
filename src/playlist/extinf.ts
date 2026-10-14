@@ -46,7 +46,7 @@ export const parseExtinf = (line: string): IExtinf | undefined => {
   return { duration: match[1], attrs, name: match[3] };
 };
 
-export const formatExtinf = ({ duration, attrs, name }: IExtinf) =>
+const formatExtinf = ({ duration, attrs, name }: IExtinf) =>
   `#EXTINF:${duration}${Object.entries(attrs)
     .map(([key, value]) => ` ${key}="${value}"`)
     .join('')},${name}`;

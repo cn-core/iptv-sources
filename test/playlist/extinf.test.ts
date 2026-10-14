@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildChannelExtinf,
-  formatExtinf,
   getChannelAttr,
   getChannelLogoUrl,
   getChannelName,
@@ -45,14 +44,15 @@ describe('parseExtinf', () => {
   });
 });
 
-describe('formatExtinf', () => {
-  it('round-trips a normalized line', () => {
-    const line = '#EXTINF:-1 tvg-id="A" group-title="G",A';
-    expect(formatExtinf(parseExtinf(line)!)).toBe(line);
-  });
-});
-
 describe('buildChannelExtinf', () => {
+  it('builds a line that parses back to the same fields', () => {
+    expect(parseExtinf(buildChannelExtinf('A', { group: 'G', logo: 'http://l/a.png' }))).toEqual({
+      duration: '-1',
+      attrs: { 'tvg-id': 'A', 'tvg-name': 'A', 'tvg-logo': 'http://l/a.png', 'group-title': 'G' },
+      name: 'A',
+    });
+  });
+
   it('fills tvg-id, tvg-name, tvg-logo and group-title', () => {
     expect(buildChannelExtinf('CCTV1', { group: '央视' })).toBe(
       '#EXTINF:-1 tvg-id="CCTV1" tvg-name="CCTV1" tvg-logo="https://tv-res.pages.dev/logo/cctv1.png" group-title="央视",CCTV1'
