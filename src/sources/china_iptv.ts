@@ -1,4 +1,4 @@
-import { parseTxt } from '../playlist';
+import { txtToPlaylist } from '../playlist';
 import { expandLanProxyOutputs } from './lan_proxy';
 import type { ISource, TSources } from './utils';
 
@@ -105,7 +105,7 @@ const createSource = (meta: IChinaIptvMeta): ISource => ({
   url: `https://raw.githubusercontent.com/xisohi/CHINA-IPTV/main/${
     CHINA_IPTV_TYPES[meta.type].dir
   }/${meta.province}/${meta.operator}.txt`,
-  parse: parseTxt,
+  parse: txtToPlaylist,
   transform: chinaIptvTransform,
 });
 

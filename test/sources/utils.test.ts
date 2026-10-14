@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseTxt } from '../../src/playlist';
+import { txtToPlaylist } from '../../src/playlist';
 import { buildSourceOutputs, type ISource } from '../../src/sources/utils';
 
 const m3u = ['#EXTM3U', '#EXTINF:-1,Channel A', 'https://a.com'].join('\n');
@@ -39,7 +39,7 @@ describe('buildSourceOutputs', () => {
       name: 'test',
       filename: 'test_txt',
       url: '',
-      parse: parseTxt,
+      parse: txtToPlaylist,
       transform: (playlist, filename) => [
         { filename: `${filename}_a`, playlist },
         { filename: `${filename}_b`, playlist },

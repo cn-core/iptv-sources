@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { parseM3u, serializeM3u } from '../../src/playlist';
+import { m3uToPlaylist, serializeM3u } from '../../src/playlist';
 import { LAN_IP_PREFIXES } from '../../src/sources/lan_proxy';
 import { qwerttvvBjIptvSources, qwerttvvBjIptvTransform } from '../../src/sources/qwerttvv_bj_iptv';
 import { buildSourceOutputs } from '../../src/sources/utils';
@@ -15,7 +15,7 @@ const raw = [
 
 describe('qwerttvvBjIptvTransform', () => {
   it('creates one result for every supported LAN IP prefix', () => {
-    const results = qwerttvvBjIptvTransform!(parseM3u(raw), 'q_bj_iptv');
+    const results = qwerttvvBjIptvTransform!(m3uToPlaylist(raw), 'q_bj_iptv');
 
     expect(LAN_IP_PREFIXES).toHaveLength(13);
     expect(results).toHaveLength(13);
@@ -28,7 +28,7 @@ describe('qwerttvvBjIptvTransform', () => {
   });
 
   it('rewrites HTTP and RTP channel URLs to each LAN gateway', () => {
-    const results = qwerttvvBjIptvTransform!(parseM3u(raw), 'q_bj_iptv');
+    const results = qwerttvvBjIptvTransform!(m3uToPlaylist(raw), 'q_bj_iptv');
     const result = results.find(({ filename }) => filename === 'bj_iptv/q_bj_iptv_192_168_6');
     const m3u = serializeM3u(result!.playlist);
 
@@ -51,7 +51,7 @@ describe('qwerttvv_bj_iptv multicast sources', () => {
       expect(outputs).toHaveLength(1);
       expect(outputs[0].filename).toBe(expected);
       expect(outputs[0].playlist.channels.map(({ url }) => url)).toEqual(
-        parseM3u(raw).channels.map(({ url }) => url)
+        m3uToPlaylist(raw).channels.map(({ url }) => url)
       );
     }
   );
@@ -69,7 +69,7 @@ describe('qwerttvv_bj_iptv proxy environment variables', () => {
     vi.resetModules();
     const mod = await import('../../src/sources/qwerttvv_bj_iptv');
 
-    const results = mod.qwerttvvBjIptvTransform!(parseM3u(raw), 'q_bj_iptv');
+    const results = mod.qwerttvvBjIptvTransform!(m3uToPlaylist(raw), 'q_bj_iptv');
 
     expect(results.map(({ filename }) => filename)).toEqual([
       'bj_iptv/q_bj_iptv_172_16_0',

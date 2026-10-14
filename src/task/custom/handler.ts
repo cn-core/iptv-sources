@@ -8,7 +8,7 @@ import {
   getChannelName,
   type IChannel,
   type IPlaylist,
-  parseM3u,
+  m3uToPlaylist,
   serializeM3u,
   toTxt,
 } from '../../playlist';
@@ -112,7 +112,7 @@ export const runCustomTask = () => {
 
     console.log(`Customize Source ${f}`);
 
-    const upstream = parseM3u(fs.readFileSync(path.join(m3uPath, `${f}.m3u`), 'utf-8'));
+    const upstream = m3uToPlaylist(fs.readFileSync(path.join(m3uPath, `${f}.m3u`), 'utf-8'));
     const result = applyCustomRules(upstream, rules);
 
     fs.writeFileSync(path.join(writeCustomPath, `${f}.m3u`), serializeM3u(result));

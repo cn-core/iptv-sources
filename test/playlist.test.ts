@@ -6,13 +6,13 @@ import {
   getChannelName,
   isStreamUrl,
   mapChannelUrls,
-  parseM3u,
-  parseTxt,
+  m3uToPlaylist,
+  txtToPlaylist,
   serializeM3u,
   toTxt,
 } from '../src/playlist';
 
-describe('parseM3u', () => {
+describe('m3uToPlaylist', () => {
   it('keeps the #EXTM3U header and EXTINF + URL pairs', () => {
     const raw = [
       '#EXTM3U',
@@ -23,7 +23,7 @@ describe('parseM3u', () => {
       'http://example.com/other',
     ].join('\n');
 
-    expect(parseM3u(raw)).toEqual({
+    expect(m3uToPlaylist(raw)).toEqual({
       header: '#EXTM3U',
       channels: [
         {
@@ -36,7 +36,7 @@ describe('parseM3u', () => {
   });
 
   it('removes \\r and empty lines', () => {
-    expect(parseM3u('#EXTM3U\r\n\r\n#EXTINF:-1,A\r\nhttp://a.com')).toEqual({
+    expect(m3uToPlaylist('#EXTM3U\r\n\r\n#EXTINF:-1,A\r\nhttp://a.com')).toEqual({
       header: '#EXTM3U',
       channels: [{ extinf: '#EXTINF:-1,A', url: 'http://a.com' }],
     });
@@ -53,25 +53,25 @@ describe('parseM3u', () => {
       '  rtp://239.3.1.1:8000',
     ].join('\n');
 
-    expect(parseM3u(raw).channels).toEqual([
+    expect(m3uToPlaylist(raw).channels).toEqual([
       { extinf: '#EXTINF:-1,Indented C', url: 'rtp://239.3.1.1:8000' },
     ]);
   });
 
   it('drops channels whose next line is not a stream url', () => {
     const raw = ['#EXTM3U', '#EXTINF:-1,A', '#EXTVLCOPT:x', 'http://a.com'].join('\n');
-    expect(parseM3u(raw).channels).toEqual([]);
+    expect(m3uToPlaylist(raw).channels).toEqual([]);
   });
 
   it('leaves the header undefined when missing', () => {
-    expect(parseM3u('#EXTINF:-1,A\nhttp://a.com').header).toBeUndefined();
+    expect(m3uToPlaylist('#EXTINF:-1,A\nhttp://a.com').header).toBeUndefined();
   });
 });
 
-describe('parseTxt', () => {
+describe('txtToPlaylist', () => {
   it('uses #genre# lines as groups and skips empty urls', () => {
     const raw = ['央视,#genre#', 'CCTV1,rtp://239.3.1.129:8008', 'CCTV2,', '无分组'].join('\n');
-    const { header, channels } = parseTxt(raw);
+    const { header, channels } = txtToPlaylist(raw);
 
     expect(header).toBe('#EXTM3U x-tvg-url="https://tv.whyun.com/epg/51zmt.xml"');
     expect(channels).toEqual([
@@ -84,7 +84,7 @@ describe('parseTxt', () => {
   });
 
   it('defaults to the 未分类 group', () => {
-    expect(parseTxt('A,http://a.com').channels[0].extinf).toContain('group-title="未分类",A');
+    expect(txtToPlaylist('A,http://a.com').channels[0].extinf).toContain('group-title="未分类",A');
   });
 });
 
@@ -93,7 +93,7 @@ describe('serializeM3u', () => {
     const raw = ['#EXTM3U', '#EXTINF:-1,A', 'http://a.com', '#EXTINF:-1,B', 'http://b.com'].join(
       '\n'
     );
-    expect(serializeM3u(parseM3u(raw))).toBe(raw);
+    expect(serializeM3u(m3uToPlaylist(raw))).toBe(raw);
   });
 
   it('omits a missing header', () => {
@@ -105,7 +105,7 @@ describe('serializeM3u', () => {
 
 describe('toTxt', () => {
   it('groups channels by group-title', () => {
-    const { channels } = parseM3u(
+    const { channels } = m3uToPlaylist(
       [
         '#EXTM3U',
         '#EXTINF:-1 tvg-id="cctv1" group-title="央视",CCTV-1 综合',

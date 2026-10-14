@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import type { IChannel, IPlaylist } from '../playlist';
-import { mapPlaylistText, normalizePlaylist, parseM3u } from '../playlist';
+import { mapPlaylistText, normalizePlaylist, m3uToPlaylist } from '../playlist';
 import { getGithubRawProxyUrl, replaceGithubRawProxyUrl } from '../utils';
 
 /** 需要拉取的远程文件 */
@@ -46,7 +46,7 @@ export interface ISource extends IRemoteSource {
 export type TSources = ISource[];
 
 export const buildSourceOutputs = (source: ISource, raw: string): ISourceOutput[] => {
-  const playlist = (source.parse ?? parseM3u)(raw);
+  const playlist = (source.parse ?? m3uToPlaylist)(raw);
   const outputs = source.transform
     ? source.transform(playlist, source.filename)
     : [{ filename: source.filename, playlist }];

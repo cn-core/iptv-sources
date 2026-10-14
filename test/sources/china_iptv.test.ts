@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseTxt, serializeM3u } from '../../src/playlist';
+import { txtToPlaylist, serializeM3u } from '../../src/playlist';
 import {
   chinaIptvSources,
   chinaIptvTransform,
@@ -17,7 +17,7 @@ const raw = [
   '外网,http://example.com/live.m3u8',
 ].join('\n');
 
-const transform = (filename: string) => chinaIptvTransform!(parseTxt(raw), filename);
+const transform = (filename: string) => chinaIptvTransform!(txtToPlaylist(raw), filename);
 
 describe('chinaIptvTransform', () => {
   it('converts genre txt to m3u and skips empty urls', () => {

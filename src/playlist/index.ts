@@ -34,7 +34,7 @@ const splitLines = (raw: string) =>
  * 解析 m3u：只保留 `#EXTM3U` 头部，以及紧挨着的「直播频道 `#EXTINF:-1...` + 带协议的地址」行对，
  * 其余行（注释、`#EXTVLCOPT` 等）全部丢弃。
  */
-export const parseM3u = (raw: string): IPlaylist => {
+export const m3uToPlaylist = (raw: string): IPlaylist => {
   const lines = splitLines(raw);
   const playlist: IPlaylist = { channels: [] };
 
@@ -60,7 +60,7 @@ export const TXT_EPG_URL = 'https://tv.whyun.com/epg/51zmt.xml';
  * 解析 `名称,地址` 格式的 txt，`分组,#genre#` 行作为后续频道的分组，
  * 并补全 tvg-id / tvg-name / tvg-logo / group-title。
  */
-export const parseTxt = (raw: string): IPlaylist => {
+export const txtToPlaylist = (raw: string): IPlaylist => {
   const lines = raw
     .trim()
     .replace(/\r/g, '')
