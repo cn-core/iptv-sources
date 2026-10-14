@@ -5,7 +5,6 @@ import {
   getChannelAttr,
   getChannelName,
   isStreamUrl,
-  mapChannelUrls,
   m3uToPlaylist,
   txtToPlaylist,
   playlistToM3u,
@@ -160,13 +159,5 @@ describe('channel helpers', () => {
       'http://1',
       'http://3',
     ]);
-  });
-
-  it('maps channel urls without touching extinf', () => {
-    const playlist = { header: '#EXTM3U', channels: [{ extinf: '#EXTINF:-1,A', url: 'a' }] };
-    expect(mapChannelUrls(playlist, (url) => url.toUpperCase())).toEqual({
-      header: '#EXTM3U',
-      channels: [{ extinf: '#EXTINF:-1,A', url: 'A' }],
-    });
   });
 });

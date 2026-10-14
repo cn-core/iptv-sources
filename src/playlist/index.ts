@@ -113,23 +113,6 @@ export const playlistToTxt = ({ channels }: IPlaylist) => {
   return txt.substring(0, txt.length - 2);
 };
 
-/** 对头部和每个频道的 extinf / url 逐行做同一个文本变换（如繁简转换） */
-export const mapPlaylistText = (
-  { header, channels }: IPlaylist,
-  fn: (line: string) => string
-): IPlaylist => ({
-  header: header === undefined ? undefined : fn(header),
-  channels: channels.map(({ extinf, url }) => ({ extinf: fn(extinf), url: fn(url) })),
-});
-
-export const mapChannelUrls = (
-  { header, channels }: IPlaylist,
-  fn: (url: string) => string
-): IPlaylist => ({
-  header,
-  channels: channels.map(({ extinf, url }) => ({ extinf, url: fn(url) })),
-});
-
 /** 按 key 去重，保留第一次出现的频道 */
 export const dedupeChannels = (channels: IChannel[], keyOf: (channel: IChannel) => string) => {
   const seen = new Set<string>();

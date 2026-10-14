@@ -1,7 +1,6 @@
 import 'dotenv/config';
 
 import type { IPlaylist } from '../playlist';
-import { mapChannelUrls } from '../playlist';
 import type { ISourceOutput } from './utils';
 
 /**
@@ -110,6 +109,12 @@ export const expandLanProxyOutputs = (
 ): ISourceOutput[] =>
   LAN_IP_PREFIXES.map((lanIpPrefix) => ({
     filename: getLanProxyFilename(baseFilename, lanIpPrefix),
-    playlist: mapChannelUrls(playlist, (url) => rewriteUrl(url, lanIpPrefix)),
+    playlist: {
+      ...playlist,
+      channels: playlist.channels.map((channel) => ({
+        ...channel,
+        url: rewriteUrl(channel.url, lanIpPrefix),
+      })),
+    },
     lanProxy: { ipPrefix: lanIpPrefix, baseFilename },
   }));

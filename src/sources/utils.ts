@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import type { IChannel, IPlaylist } from '../playlist';
-import { mapPlaylistText, normalizePlaylist, m3uToPlaylist } from '../playlist';
+import { normalizePlaylist, m3uToPlaylist } from '../playlist';
 import { getGithubRawProxyUrl, replaceGithubRawProxyUrl } from '../utils';
 
 /** 需要拉取的远程文件 */
@@ -56,8 +56,13 @@ export const buildSourceOutputs = (source: ISource, raw: string): ISourceOutput[
 };
 
 /** tvg-logo 中的 GitHub raw 地址走代理 */
-export const withGithubRawLogoProxy = (playlist: IPlaylist) =>
-  mapPlaylistText(playlist, replaceGithubRawProxyUrl);
+export const withGithubRawLogoProxy = (playlist: IPlaylist): IPlaylist => ({
+  ...playlist,
+  channels: playlist.channels.map((channel) => ({
+    ...channel,
+    extinf: replaceGithubRawProxyUrl(channel.extinf),
+  })),
+});
 
 export const withGithubRawUrlProxy = (u: string) => {
   return process.env.CLOSE_SOURCE_PROXY?.trim() === 'true' ? u : `${getGithubRawProxyUrl()}/${u}`;
