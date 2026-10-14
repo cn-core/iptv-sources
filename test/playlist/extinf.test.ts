@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildChannelExtinf,
+  toStandardName,
   getChannelAttr,
   getChannelLogoUrl,
   getChannelName,
@@ -44,7 +45,43 @@ describe('parseExtinf', () => {
   });
 });
 
+describe('toStandardName', () => {
+  it.each([
+    ['102号[768*576]', '102号'],
+    ['中山综合.576', '中山综合'],
+    ['IPTV法治.', 'IPTV法治'],
+    ['CGTN纪录(国际版)', 'CGTN纪录'],
+    ['IPTV3＋(轮播)', 'IPTV3＋'],
+    ['CCTV-4中文国际（4K）', 'CCTV-4中文国际'],
+    ['CCTV4K超高清【4K】', 'CCTV4K超高清'],
+    ['求索纪录4K/AC3', '求索纪录4K'],
+    ['CCTV13 540', 'CCTV13'],
+    ['信号测试1 6M1080', '信号测试1'],
+    ['(!!)(箱)音乐欣赏', '音乐欣赏'],
+    ['CCTV 4K超高清', 'CCTV 4K超高清'],
+    ['北京卫视', '北京卫视'],
+  ])('%s -> %s', (name, expected) => {
+    expect(toStandardName(name)).toBe(expected);
+  });
+
+  it('falls back to the original name when nothing is left', () => {
+    expect(toStandardName(' (测试) ')).toBe('(测试)');
+  });
+});
+
 describe('buildChannelExtinf', () => {
+  it('uses the standard name for tvg-id, tvg-name and logo but keeps the display name', () => {
+    expect(buildChannelExtinf('中山综合.576', { group: 'G' })).toBe(
+      '#EXTINF:-1 tvg-id="中山综合" tvg-name="中山综合" tvg-logo="https://tv-res.pages.dev/logo/中山综合.png" group-title="G",中山综合.576'
+    );
+  });
+
+  it('strips double quotes from attribute values', () => {
+    expect(buildChannelExtinf('A"B', { group: 'G"1' })).toBe(
+      '#EXTINF:-1 tvg-id="AB" tvg-name="AB" tvg-logo="https://tv-res.pages.dev/logo/A%22B.png" group-title="G1",A"B'
+    );
+  });
+
   it('builds a line that parses back to the same fields', () => {
     expect(parseExtinf(buildChannelExtinf('A', { group: 'G', logo: 'http://l/a.png' }))).toEqual({
       duration: '-1',

@@ -1,5 +1,5 @@
 import { converter } from '../utils/converter';
-import { getChannelLogoUrl, parseExtinf, updateExtinf } from './extinf';
+import { getChannelLogoUrl, parseExtinf, toStandardName, updateExtinf } from './extinf';
 import type { IChannel, IPlaylist } from './index';
 
 /** 没有分组时使用的 group-title */
@@ -33,9 +33,11 @@ export const normalizeChannel = (channel: IChannel): IChannel => {
     attrs[key] = isUrlValue(value) ? value : converter(value);
   }
 
-  const tvgName = parsed.attrs['tvg-name'] ? normalizeName(parsed.attrs['tvg-name']) : name;
+  const tvgName = parsed.attrs['tvg-name']
+    ? normalizeName(parsed.attrs['tvg-name'])
+    : toStandardName(name);
   attrs['tvg-name'] = tvgName;
-  attrs['tvg-logo'] ||= getChannelLogoUrl(tvgName);
+  attrs['tvg-logo'] ||= getChannelLogoUrl(toStandardName(tvgName));
   attrs['group-title'] ||= DEFAULT_GROUP;
 
   return { extinf: updateExtinf(channel.extinf, { name, attrs }), url: channel.url };

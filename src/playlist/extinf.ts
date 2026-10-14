@@ -31,6 +31,26 @@ const encodeLogoName = (name: string) =>
 export const getChannelLogoUrl = (name: string) =>
   `${CHANNEL_LOGO_BASE_URL}/${encodeLogoName(name.replace(/CCTV/g, 'cctv'))}.png`;
 
+/**
+ * 去掉频道名中的修饰，得到用于 tvg-id / tvg-name / logo 的标准名：
+ * 括号备注 `(轮播)`、`（4K）`、`【4K】`、`[768*576]`，音频标记 `/AC3`，
+ * 末尾的 `.576`、`.`，以及末尾空格后的码率 / 清晰度 ` 540`、` 12M2160`。
+ * 去完为空时返回原名。
+ */
+export const toStandardName = (name: string) => {
+  const standard = name
+    .replace(/\([^)]*\)|（[^）]*）|【[^】]*】|\[[^\]]*\]/g, '')
+    .trim()
+    .replace(/\/[A-Za-z0-9]+$/, '')
+    .replace(/\.\d*$/, '')
+    .replace(/ +\d+[A-Za-z]?\d*$/, '')
+    .trim();
+  return standard || name.trim();
+};
+
+/** 属性值不能包含双引号，否则会破坏整行 */
+const sanitizeAttrValue = (value: string) => value.replace(/"/g, '');
+
 const matchExtinf = (line: string) =>
   EXTINF_LINE_REGEXP.exec(line) ?? EXTINF_LINE_LOOSE_REGEXP.exec(line);
 
@@ -48,14 +68,14 @@ export const parseExtinf = (line: string): IExtinf | undefined => {
 
 const formatExtinf = ({ duration, attrs, name }: IExtinf) =>
   `#EXTINF:${duration}${Object.entries(attrs)
-    .map(([key, value]) => ` ${key}="${value}"`)
+    .map(([key, value]) => ` ${key}="${sanitizeAttrValue(value)}"`)
     .join('')},${name}`;
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /** 设置属性：已有则原位替换值，没有则追加到属性末尾 */
 const setAttr = (attrsPart: string, key: string, value: string) => {
-  const quoted = `${key}="${value.replace(/"/g, '')}"`;
+  const quoted = `${key}="${sanitizeAttrValue(value)}"`;
   const existing = new RegExp(`(^|\\s)${escapeRegExp(key)}="[^"]*"`);
   if (existing.test(attrsPart)) {
     return attrsPart.replace(existing, (_, sep: string) => `${sep}${quoted}`);
@@ -90,22 +110,27 @@ export const updateExtinf = (
 export interface IChannelExtinfOptions {
   /** group-title，分组名 */
   group: string;
-  /** tvg-logo，默认按频道名从 CHANNEL_LOGO_BASE_URL 取 */
+  /** tvg-logo，默认按标准名从 CHANNEL_LOGO_BASE_URL 取 */
   logo?: string;
 }
 
-/** 生成本项目自建频道的 EXTINF：tvg-id / tvg-name / tvg-logo / group-title */
-export const buildChannelExtinf = (name: string, { group, logo }: IChannelExtinfOptions) =>
-  formatExtinf({
+/**
+ * 生成本项目自建频道的 EXTINF：tvg-id / tvg-name / tvg-logo / group-title。
+ * tvg-id、tvg-name、logo 使用标准名（见 toStandardName），显示名保持原样。
+ */
+export const buildChannelExtinf = (name: string, { group, logo }: IChannelExtinfOptions) => {
+  const standardName = toStandardName(name);
+  return formatExtinf({
     duration: LIVE_DURATION,
     attrs: {
-      'tvg-id': name,
-      'tvg-name': name,
-      'tvg-logo': logo ?? getChannelLogoUrl(name),
+      'tvg-id': standardName,
+      'tvg-name': standardName,
+      'tvg-logo': logo ?? getChannelLogoUrl(standardName),
       'group-title': group,
     },
     name,
   });
+};
 
 /** EXTINF 行中的频道名（未 trim），无法解析时为空字符串 */
 export const getChannelName = (extinf: string) => parseExtinf(extinf)?.name ?? '';
