@@ -101,7 +101,7 @@ export const playlistToTxt = ({ channels }: IPlaylist) => {
   for (const { extinf, url } of channels) {
     const parsed = parseExtinf(extinf);
     const channelName = parsed?.name.trim() ?? '';
-    const group = parsed?.attrs['group-title']?.trim() || 'Undefined';
+    const group = parsed?.attrs['group-title']?.trim() || DEFAULT_GROUP;
 
     groups.set(group, (groups.get(group) ?? '') + `${channelName.replace(/\s+/g, '_')},${url}\n`);
   }

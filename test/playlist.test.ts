@@ -129,10 +129,10 @@ describe('playlistToTxt', () => {
     );
   });
 
-  it('uses Undefined when there is no group-title', () => {
+  it('uses the default group when there is no group-title', () => {
     expect(
       playlistToTxt({ channels: [{ extinf: '#EXTINF:-1,Custom Channel', url: 'https://c.com' }] })
-    ).toBe('Undefined,#genre#\nCustom_Channel,https://c.com');
+    ).toBe('未分类,#genre#\nCustom_Channel,https://c.com');
   });
 });
 
