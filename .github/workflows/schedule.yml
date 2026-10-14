@@ -2,7 +2,7 @@ name: update schedule
 
 on:
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "17 */2 * * *" # 避开整点高峰，整点的定时任务容易被 GitHub 延迟或丢弃
   workflow_dispatch:  # ← 添加这行，允许手动触发测试
 
 permissions:
