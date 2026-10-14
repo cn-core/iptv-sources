@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { txtToPlaylist, serializeM3u } from '../../src/playlist';
+import { txtToPlaylist, playlistToM3u } from '../../src/playlist';
 import {
   chinaIptvSources,
   chinaIptvTransform,
@@ -22,7 +22,7 @@ const transform = (filename: string) => chinaIptvTransform!(txtToPlaylist(raw), 
 describe('chinaIptvTransform', () => {
   it('converts genre txt to m3u and skips empty urls', () => {
     const [result] = transform('iptv/unicast/hebei/unicom');
-    const m3u = serializeM3u(result.playlist);
+    const m3u = playlistToM3u(result.playlist);
 
     expect(result.filename).toBe('iptv/unicast/hebei/unicom');
     expect(result.playlist.channels).toHaveLength(3);
@@ -47,7 +47,7 @@ describe('chinaIptvTransform', () => {
     expect(results[0].lanProxy).toBeUndefined();
 
     const proxied = results.find(({ filename }) => filename.endsWith('_192_168_1'));
-    const m3u = serializeM3u(proxied!.playlist);
+    const m3u = playlistToM3u(proxied!.playlist);
     expect(proxied?.lanProxy).toEqual({
       ipPrefix: '192.168.1',
       baseFilename: 'iptv/multicast/hebei/unicom',

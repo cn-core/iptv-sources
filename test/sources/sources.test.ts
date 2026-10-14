@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getContent } from '../../src/file';
 import { collectSourceUrls } from '../../src/pipeline/sources';
-import { toTxt } from '../../src/playlist';
+import { playlistToTxt } from '../../src/playlist';
 import { buildSourceOutputs, sources } from '../../src/sources';
 import { hotelTvnSources } from '../../src/sources/hotel_tvn';
 import { youhunSources } from '../../src/sources/youhun';
@@ -67,7 +67,7 @@ describe('youhunSources', () => {
       expect(urls.every((u) => typeof u === 'string' && u.length > 0)).toBe(true);
     }
 
-    const txt = toTxt(result.playlist.channels);
+    const txt = playlistToTxt(result.playlist);
     expect(typeof txt).toBe('string');
     expect(txt.length).toBeGreaterThan(0);
   });

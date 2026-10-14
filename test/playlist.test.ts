@@ -8,8 +8,8 @@ import {
   mapChannelUrls,
   m3uToPlaylist,
   txtToPlaylist,
-  serializeM3u,
-  toTxt,
+  playlistToM3u,
+  playlistToTxt,
 } from '../src/playlist';
 
 describe('m3uToPlaylist', () => {
@@ -88,24 +88,24 @@ describe('txtToPlaylist', () => {
   });
 });
 
-describe('serializeM3u', () => {
+describe('playlistToM3u', () => {
   it('round-trips a parsed playlist', () => {
     const raw = ['#EXTM3U', '#EXTINF:-1,A', 'http://a.com', '#EXTINF:-1,B', 'http://b.com'].join(
       '\n'
     );
-    expect(serializeM3u(m3uToPlaylist(raw))).toBe(raw);
+    expect(playlistToM3u(m3uToPlaylist(raw))).toBe(raw);
   });
 
   it('omits a missing header', () => {
-    expect(serializeM3u({ channels: [{ extinf: '#EXTINF:-1,A', url: 'http://a.com' }] })).toBe(
+    expect(playlistToM3u({ channels: [{ extinf: '#EXTINF:-1,A', url: 'http://a.com' }] })).toBe(
       '#EXTINF:-1,A\nhttp://a.com'
     );
   });
 });
 
-describe('toTxt', () => {
+describe('playlistToTxt', () => {
   it('groups channels by group-title', () => {
-    const { channels } = m3uToPlaylist(
+    const playlist = m3uToPlaylist(
       [
         '#EXTM3U',
         '#EXTINF:-1 tvg-id="cctv1" group-title="央视",CCTV-1 综合',
@@ -117,7 +117,7 @@ describe('toTxt', () => {
       ].join('\n')
     );
 
-    expect(toTxt(channels)).toBe(
+    expect(playlistToTxt(playlist)).toBe(
       [
         '央视,#genre#',
         'CCTV-1_综合,https://example.com/cctv1',
@@ -130,9 +130,9 @@ describe('toTxt', () => {
   });
 
   it('uses Undefined when there is no group-title', () => {
-    expect(toTxt([{ extinf: '#EXTINF:-1,Custom Channel', url: 'https://c.com' }])).toBe(
-      'Undefined,#genre#\nCustom_Channel,https://c.com'
-    );
+    expect(
+      playlistToTxt({ channels: [{ extinf: '#EXTINF:-1,Custom Channel', url: 'https://c.com' }] })
+    ).toBe('Undefined,#genre#\nCustom_Channel,https://c.com');
   });
 });
 

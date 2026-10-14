@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import { promisify } from 'util';
 import { gzip } from 'zlib';
 
-import { type IPlaylist, serializeM3u, toTxt } from './playlist';
+import { type IPlaylist, playlistToM3u, playlistToTxt } from './playlist';
 import { CHINA_IPTV_DIR, type IRemoteSource, withGithubRawUrlProxy } from './sources';
 
 import { mergeByDateAndChannel, parseEpgXml, sanitizeChannelFileName } from './epgs/parser';
@@ -106,7 +106,7 @@ export const getContent = (src: IRemoteSource) =>
 
 export const writeM3u = async (filename: string, playlist: IPlaylist) => {
   const m3uDir = await createSubDirectory('m3u');
-  await writeFile(await resolveOutputFile(m3uDir, filename, '.m3u'), serializeM3u(playlist));
+  await writeFile(await resolveOutputFile(m3uDir, filename, '.m3u'), playlistToM3u(playlist));
 };
 
 export const writeSources = async (
@@ -131,7 +131,7 @@ export const writeSources = async (
 
 export const writeTxt = async (filename: string, playlist: IPlaylist) => {
   const txtDir = await createSubDirectory('m3u', 'txt');
-  await writeFile(await resolveOutputFile(txtDir, filename, '.txt'), toTxt(playlist.channels));
+  await writeFile(await resolveOutputFile(txtDir, filename, '.txt'), playlistToTxt(playlist));
 };
 
 export const mergeTxts = () => {

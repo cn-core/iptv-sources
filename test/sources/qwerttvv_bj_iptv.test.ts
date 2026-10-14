@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { m3uToPlaylist, serializeM3u } from '../../src/playlist';
+import { m3uToPlaylist, playlistToM3u } from '../../src/playlist';
 import { LAN_IP_PREFIXES } from '../../src/sources/lan_proxy';
 import { qwerttvvBjIptvSources, qwerttvvBjIptvTransform } from '../../src/sources/qwerttvv_bj_iptv';
 import { buildSourceOutputs } from '../../src/sources/utils';
@@ -30,7 +30,7 @@ describe('qwerttvvBjIptvTransform', () => {
   it('rewrites HTTP and RTP channel URLs to each LAN gateway', () => {
     const results = qwerttvvBjIptvTransform!(m3uToPlaylist(raw), 'q_bj_iptv');
     const result = results.find(({ filename }) => filename === 'bj_iptv/q_bj_iptv_192_168_6');
-    const m3u = serializeM3u(result!.playlist);
+    const m3u = playlistToM3u(result!.playlist);
 
     expect(m3u).toContain('http://192.168.6.1:23234/rtp/239.3.1.118:8001');
     expect(m3u).toContain('http://192.168.6.1:23234/rtp/239.3.1.159:8000');
@@ -75,7 +75,7 @@ describe('qwerttvv_bj_iptv proxy environment variables', () => {
       'bj_iptv/q_bj_iptv_172_16_0',
       'bj_iptv/q_bj_iptv_172_16_1',
     ]);
-    const m3u = serializeM3u(results[1].playlist);
+    const m3u = playlistToM3u(results[1].playlist);
     expect(m3u).toContain('http://172.16.1.1:4022/rtp/239.3.1.118:8001');
     expect(m3u).toContain('http://172.16.1.1:4022/rtp/239.3.1.159:8000');
   });

@@ -89,13 +89,13 @@ export const txtToPlaylist = (raw: string): IPlaylist => {
   return { header: `#EXTM3U x-tvg-url="${TXT_EPG_URL}"`, channels };
 };
 
-export const serializeM3u = ({ header, channels }: IPlaylist) =>
+export const playlistToM3u = ({ header, channels }: IPlaylist) =>
   [...(header === undefined ? [] : [header]), ...channels.flatMap((c) => [c.extinf, c.url])].join(
     '\n'
   );
 
 /** 转为 TVBox 使用的 txt：按 group-title 分组输出 `分组,#genre#` 与 `名称,地址` */
-export const toTxt = (channels: IChannel[]) => {
+export const playlistToTxt = ({ channels }: IPlaylist) => {
   const groups = new Map<string, string>();
 
   for (const { extinf, url } of channels) {
