@@ -32,12 +32,10 @@ export const normalizeChannel = (channel: IChannel): IChannel => {
   for (const [key, value] of Object.entries(parsed.attrs)) {
     attrs[key] = isUrlValue(value) ? value : converter(value);
   }
-
-  const tvgName = parsed.attrs['tvg-name']
-    ? normalizeName(parsed.attrs['tvg-name'])
-    : toStandardName(name);
+  const originalTvgName = parsed.attrs['tvg-name'] ?? '';
+  const tvgName = originalTvgName ? normalizeName(originalTvgName) : toStandardName(name);
   attrs['tvg-name'] = tvgName;
-  attrs['tvg-logo'] ||= getChannelLogoUrl(toStandardName(tvgName));
+  attrs['tvg-logo'] ||= getChannelLogoUrl(originalTvgName ? toStandardName(tvgName) : tvgName);
   attrs['group-title'] ||= DEFAULT_GROUP;
 
   return { extinf: updateExtinf(channel.extinf, { name, attrs }), url: channel.url };
